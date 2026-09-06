@@ -921,7 +921,7 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
  *      localStorage.setItem('sp_api_url','https://...')).
  *   3. Local dev fallback — the Flask dev server default.
  */
-const API = window.SAFEPAY_API_URL || localStorage.getItem('sp_api_url') || 'http://127.0.0.1:5000';
+const API = window.SAFEPAY_API_URL || localStorage.getItem('sp_api_url') || 'https://safepay-hzxh.onrender.com';
 let token    = localStorage.getItem('sp_token') || '';
 let username = localStorage.getItem('sp_user')  || '';
 let userEmail = '';
