@@ -1,101 +1,143 @@
-# SafePay - Fraud-Protected Payments
+# SafePay — Fraud-Protected Payments
 
-> A production-deployed fintech simulator with JWT authentication, wallet payments, behavioural fraud detection, OTP verification, and transaction analytics.
+> A full-stack fintech simulator with JWT authentication, wallet payments, behavioural fraud detection, OTP verification, and transaction analytics.
 
 <p align="center">
-  <a href="https://safepay-lime.vercel.app">
-    <strong>Live Demo</strong>
-  </a>
-  &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="https://safepay-hzxh.onrender.com/health">
-    <strong>API Health</strong>
-  </a>
+  <a href="https://safepay-lime.vercel.app">🚀 Live Demo</a>
+  &nbsp; • &nbsp;
+  <a href="https://safepay-hzxh.onrender.com/health">💚 API Health</a>
 </p>
 
 ---
 
-## Overview
+## 💡 What is SafePay?
 
-**SafePay** is a full-stack payment simulator designed around one core idea:
+SafePay is a payment application where **every wallet transfer is evaluated for fraud before completion**.
 
-> **Every wallet transfer should be evaluated for fraud before it is completed.**
+The fraud engine combines behavioural and transaction signals such as:
 
-The application combines a Flask backend with a static JavaScript frontend. Before a transfer is approved, SafePay evaluates behavioural and transaction signals such as:
-
-- New devices
-- First-time recipients
+- New devices & recipients
 - Unusual transaction amounts
 - Rapid transaction activity
-- Failed transaction attempts
+- Failed attempts
+- Location anomalies
 - Late-night activity
-- Unfamiliar locations
 - Dormant accounts
-- Multi-recipient activity
-- Escalating transaction amounts
 
-These signals are combined into a **risk score from 0–100**, which determines whether the transaction is approved, flagged, sent through OTP verification, or blocked.
-
-### Live Application
-
-**[Launch SafePay →](https://safepay-lime.vercel.app)**
+These signals produce a **0–100 risk score** that determines whether a transaction is approved, requires OTP verification, or is blocked.
 
 > Portfolio/demo application — not intended for real financial transactions.
 
 ---
 
-## Key Features
+## ✨ Features
 
-### Authentication & Security
-- Username/password authentication
-- PBKDF2-SHA256 password hashing
-- JWT-based authentication
-- JWT expiration and protected API routes
-- Request rate limiting
-- Parameterized SQL queries
-- Security headers
-- CORS restricted to the deployed frontend
+- 🔐 JWT authentication + PBKDF2-SHA256 password hashing
+- 💳 Wallet top-ups and peer-to-peer transfers
+- 🛡️ Rule-based behavioural fraud detection
+- 📧 OTP step-up verification for high-risk transfers
+- 📊 Transaction history & fraud analytics
+- 💰 Razorpay integration with demo payment mode
+- 🚦 Rate limiting, CORS, security headers & audit logging
 
-### Wallet & Payments
-- Wallet balance management
-- Peer-to-peer transfers
-- Razorpay payment integration
-- Demo payment mode when Razorpay credentials are not configured
-- Backend-only handling of payment secrets
+---
 
-### Behavioural Fraud Detection
-
-Every transfer passes through a rule-based fraud scoring engine before completion.
-
-The engine evaluates signals including:
-
-| Signal | Example |
-|---|---|
-| New device | Transfer from an unfamiliar device |
-| New recipient | First transfer to a recipient |
-| Amount anomaly | Transaction significantly outside normal behaviour |
-| Large transaction | High-value transfer |
-| Velocity | Multiple transactions within a short period |
-| Rapid-fire activity | Transactions occurring seconds apart |
-| Failed attempts | Recent failed transactions |
-| Late-night activity | Unusual transaction hour |
-| Location anomaly | Activity from an unfamiliar location |
-| Dormant account | Sudden activity after inactivity |
-| Recipient fan-out | Transfers to multiple recipients |
-| Escalating amounts | Increasing transaction values |
-
-### Risk Levels
+## 🧠 Fraud Detection
 
 ```text
-Risk Score
-    │
-    ├── 0–29    → LOW
-    │             Approve
-    │
-    ├── 30–54   → MEDIUM
-    │             Approve + flag
-    │
-    ├── 55–74   → HIGH
-    │             OTP verification
-    │
-    └── 75–100  → HIGH
-                  Block transaction
+Transaction
+     ↓
+Behavioural Signals
+     ↓
+Risk Score (0–100)
+     ↓
+┌──────────┬──────────┬──────────┐
+│   LOW    │  MEDIUM  │   HIGH   │
+│  < 30    │  30–54   │  55–74  │
+│ APPROVE  │  FLAG    │   OTP   │
+└──────────┴──────────┴──────────┘
+                    ↓
+              75+ → BLOCK
+
+The current implementation is rule-based and deterministic; no ML model is required for the deployed application.
+
+🏗️ Architecture
+Frontend (Vercel)
+      │
+      │ REST API
+      ▼
+Flask Backend (Render)
+      │
+ ┌────┼─────────────┐
+ ▼    ▼             ▼
+Auth  Payments   Fraud Engine
+ │       │            │
+ └───────┴────────────┘
+          ▼
+       SQLite
+🛠️ Tech Stack
+
+Frontend: HTML, CSS, JavaScript
+Backend: Python, Flask, Gunicorn
+Database: SQLite
+Auth: JWT, PBKDF2-SHA256
+Payments: Razorpay
+Deployment: Vercel + Render
+
+📸 Screenshots
+
+Add 2–3 screenshots of the deployed application here.
+
+Dashboard	Fraud Detection
+
+	
+🚀 Run Locally
+Backend
+cd backend
+pip install -r requirements.txt
+python app.py
+Frontend
+
+Open frontend/index.html in a browser or serve the directory with any static server.
+
+For local development, set:
+
+window.SAFEPAY_API_URL = "http://localhost:5000";
+🔌 API
+POST  /register
+POST  /login
+GET   /balance
+POST  /transfer
+POST  /fraud-check
+POST  /send-otp
+POST  /verify-otp
+GET   /transactions
+GET   /stats
+GET   /fraud-stats
+GET   /health
+🔒 Security
+PBKDF2-SHA256 password hashing with random salts
+JWT-protected API routes
+Parameterized SQL queries
+Rate limiting
+CORS restrictions
+Security response headers
+Backend-only payment secrets
+Audit logging
+⚠️ Limitations
+
+SafePay is a portfolio/demo project, not production financial infrastructure.
+
+The current version uses SQLite and in-memory rate limiting/OTP storage. Production infrastructure such as PostgreSQL and Redis would be used for a larger deployment.
+
+🔮 Future Improvements
+PostgreSQL for production persistence
+Redis for rate limiting and OTP storage
+Automated tests + CI/CD
+ML-assisted fraud scoring
+Stronger MFA and account security
+👩‍💻 Author
+
+Arshin Kazi
+
+Full-stack software engineering project exploring fintech systems, API development, authentication, and fraud detection.
