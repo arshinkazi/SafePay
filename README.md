@@ -1,14 +1,14 @@
-# SafePay — Fraud-Protected Payments
+# SafePay - Fraud-Protected Payments
 
 > A production-deployed fintech simulator with JWT authentication, wallet payments, behavioural fraud detection, OTP verification, and transaction analytics.
 
 <p align="center">
   <a href="https://safepay-lime.vercel.app">
-    <strong>🚀 Live Demo</strong>
+    <strong>Live Demo</strong>
   </a>
   &nbsp;&nbsp;•&nbsp;&nbsp;
   <a href="https://safepay-hzxh.onrender.com/health">
-    <strong>💚 API Health</strong>
+    <strong>API Health</strong>
   </a>
 </p>
 
@@ -35,7 +35,7 @@ The application combines a Flask backend with a static JavaScript frontend. Befo
 
 These signals are combined into a **risk score from 0–100**, which determines whether the transaction is approved, flagged, sent through OTP verification, or blocked.
 
-### 🌐 Live Application
+### Live Application
 
 **[Launch SafePay →](https://safepay-lime.vercel.app)**
 
@@ -43,9 +43,9 @@ These signals are combined into a **risk score from 0–100**, which determines 
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🔐 Authentication & Security
+### Authentication & Security
 - Username/password authentication
 - PBKDF2-SHA256 password hashing
 - JWT-based authentication
@@ -55,14 +55,14 @@ These signals are combined into a **risk score from 0–100**, which determines 
 - Security headers
 - CORS restricted to the deployed frontend
 
-### 💳 Wallet & Payments
+### Wallet & Payments
 - Wallet balance management
 - Peer-to-peer transfers
 - Razorpay payment integration
 - Demo payment mode when Razorpay credentials are not configured
 - Backend-only handling of payment secrets
 
-### 🛡️ Behavioural Fraud Detection
+### Behavioural Fraud Detection
 
 Every transfer passes through a rule-based fraud scoring engine before completion.
 
