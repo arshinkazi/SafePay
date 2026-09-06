@@ -1,0 +1,31 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# This lets you deploy the backend by connecting the repo on Render and
+# choosing "New +" → "Blueprint", instead of configuring a Web Service by
+# hand. Manually configuring a Web Service with the same settings (see the
+# README's "Deploy Backend to Render" section) works exactly the same way —
+# this file is a convenience, not a requirement.
+#
+# No secrets are stored here. `sync: false` env vars must be filled in from
+# the Render dashboard after the service is created.
+
+services:
+  - type: web
+    name: safepay-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    healthCheckPath: /health
+    envVars:
+      - key: JWT_SECRET_KEY
+        sync: false          # set a long random value in the Render dashboard
+      - key: FRONTEND_URL
+        sync: false          # e.g. https://your-app.vercel.app
+      - key: RAZORPAY_KEY_ID
+        sync: false          # optional — omit for demo mode
+      - key: RAZORPAY_KEY_SECRET
+        sync: false          # optional — omit for demo mode
+      - key: LOG_TO_FILE
+        value: "false"        # Render captures stdout; no local disk needed

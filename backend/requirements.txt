@@ -1,0 +1,16 @@
+# SafePay Backend — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# ── Web framework ──────────────────────────────────────────────────────────────
+flask>=3.0.0
+flask-jwt-extended>=4.6.0
+flask-cors>=4.0.0
+
+# ── Payment gateway ────────────────────────────────────────────────────────────
+razorpay>=1.4.0          # only needed when RAZORPAY_KEY_ID is set
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+python-dotenv>=1.0.0     # optional: load .env file in development
+
+# ── Production WSGI server ────────────────────────────────────────────────────
+gunicorn>=21.2.0          # production start command: gunicorn app:app

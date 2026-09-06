@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafePay — Fraud-Protected Payments</title>
+<script>
+  // ══════════════════════════════════════════════════════════════════
+  // DEPLOYMENT CONFIG — the only line you need to change to deploy.
+  // Local development: leave this as ''  (falls back to the Flask dev
+  //   server at http://127.0.0.1:5000 — see the API constant below).
+  // Production: set this to your deployed backend URL, e.g. the Render
+  //   service URL — 'https://safepay-backend.onrender.com'  (no trailing
+  //   slash). Redeploy the frontend after changing it.
+  // ══════════════════════════════════════════════════════════════════
+  window.SAFEPAY_API_URL = '';
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #F7F5FB;
+  --bg2:       #FBFAFD;
+  --bg3:       #F1EDF9;
+  --surface:   #FFFFFF;
+  --surface2:  #F4F1FA;
+  --surface3:  #EAE4F5;
+  --border:    rgba(66,50,110,0.08);
+  --border2:   rgba(66,50,110,0.14);
+  --border3:   rgba(66,50,110,0.24);
+  --ink:       #2C2542;
+  --ink2:      #706892;
+  --ink3:      #9992B5;
+  --ink4:      #C7C1DE;
+  --blue:      #5B67F1;
+  --blue2:     #8C6EF2;
+  --blue-glow: rgba(91,103,241,0.25);
+  --blue-dim:  rgba(91,103,241,0.10);
+  --green:     #1E9E76;
+  --green-dim: rgba(30,158,118,0.10);
+  --amber:     #C97F1E;
+  --amber-dim: rgba(201,127,30,0.11);
+  --red:       #D14F6E;
+  --red-dim:   rgba(209,79,110,0.10);
+  --purple:    #8A5CF6;
+  --r:         10px;
+  --r-sm:      7px;
+  --r-lg:      16px;
+  --r-xl:      22px;
+  --shadow:    0 16px 50px rgba(66,50,110,0.12);
+  --t:         all 0.15s cubic-bezier(0.4,0,0.2,1);
+  --font:      'DM Sans', sans-serif;
+  --mono:      'DM Mono', monospace;
+  --serif:     'Playfair Display', serif;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button,input,select{font-family:inherit}
+a{color:var(--blue);text-decoration:none}
+
+/* Grid bg */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(91,103,241,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(91,103,241,0.035) 1px,transparent 1px);background-size:64px 64px}
+body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-50%);width:900px;height:500px;border-radius:50%;background:radial-gradient(ellipse,rgba(140,110,242,0.10) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+.app{position:relative;z-index:1}
+
+/* Pages */
+.page{display:none;min-height:100vh;animation:fadeUp 0.22s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── TOPBAR ── */
+.topbar{position:sticky;top:0;z-index:200;background:rgba(247,245,251,0.82);backdrop-filter:blur(28px);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:700;font-size:16px;letter-spacing:-0.3px;display:flex;align-items:center;gap:9px;cursor:pointer;color:var(--ink)}
+.logo-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--blue2));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 18px var(--blue-glow)}
+.logo-mark svg{width:15px;height:15px;fill:white}
+.topbar-nav{display:flex;gap:1px}
+.nav-btn{background:none;border:none;color:var(--ink2);font-size:13px;font-weight:500;padding:6px 14px;border-radius:7px;cursor:pointer;transition:var(--t);letter-spacing:0.01em}
+.nav-btn:hover{color:var(--ink);background:rgba(66,50,110,0.05)}
+.nav-btn.active{color:var(--ink);background:var(--surface2)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 4px;font-size:13px;color:var(--ink2);cursor:pointer;transition:var(--t)}
+.user-chip:hover{border-color:var(--border2)}
+.avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;text-transform:uppercase}
+.logout-btn{background:none;border:1px solid var(--border);border-radius:7px;color:var(--ink3);font-size:12px;font-weight:500;padding:5px 11px;cursor:pointer;transition:var(--t)}
+.logout-btn:hover{border-color:var(--border2);color:var(--ink)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:42px;padding:0 20px;border:none;border-radius:var(--r-sm);font-size:13.5px;font-weight:600;letter-spacing:0.01em;cursor:pointer;transition:var(--t);white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff;width:100%}
+.btn-primary:hover:not(:disabled){background:#4A56E8;transform:translateY(-1px);box-shadow:0 6px 24px var(--blue-glow)}
+.btn-primary:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--surface2);color:var(--ink2);border:1px solid var(--border);width:100%}
+.btn-secondary:hover{background:var(--surface3);color:var(--ink)}
+.btn-ghost{background:transparent;color:var(--ink2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface2);color:var(--ink);border-color:var(--border2)}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,59,92,0.18)}
+.btn-danger:hover{background:rgba(255,59,92,0.15)}
+.btn-amber{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,0.2);width:100%}
+.btn-amber:hover:not(:disabled){background:rgba(245,166,35,0.18);transform:translateY(-1px)}
+.btn-amber:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+.btn-sm{height:32px;padding:0 13px;font-size:12px}
+.btn-lg{height:48px;font-size:14.5px}
+
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.18);border-top-color:#fff;border-radius:50%;animation:spin 0.5s linear infinite;display:none}
+.loading .spinner{display:block}
+.loading .btn-text{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── FORM FIELDS ── */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--ink3);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.08em}
+.field input,.field select{width:100%;height:44px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--ink);font-size:13.5px;padding:0 13px;outline:none;transition:var(--t)}
+.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+.field input::placeholder{color:var(--ink4)}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%233E4568' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.amount-wrap{position:relative}
+.amount-pfx{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink2);font-size:13.5px;font-weight:600;pointer-events:none}
+.amount-wrap input{padding-left:28px}
+
+/* ── ALERTS ── */
+.alert{display:none;padding:10px 13px;border-radius:var(--r-sm);font-size:13px;margin-bottom:13px;font-weight:500;align-items:flex-start;gap:8px;line-height:1.5}
+.alert.show{display:flex}
+.alert-error{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,59,92,0.18)}
+.alert-success{background:var(--green-dim);color:var(--green);border:1px solid rgba(30,201,154,0.18)}
+.alert-warning{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,0.18)}
+.alert-icon{flex-shrink:0;margin-top:1px;font-size:14px}
+
+/* ── TOAST ── */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:11px 15px;border-radius:var(--r-sm);font-size:13px;font-weight:500;animation:toastIn 0.25s ease;pointer-events:auto;display:flex;align-items:center;gap:8px;box-shadow:0 12px 32px rgba(66,50,110,0.16);max-width:340px;backdrop-filter:blur(16px)}
+.toast-success{background:#EAF9F2;color:var(--green);border:1px solid rgba(30,158,118,0.3)}
+.toast-error{background:#FCEDF0;color:var(--red);border:1px solid rgba(209,79,110,0.3)}
+.toast-warning{background:#FBF2E3;color:var(--amber);border:1px solid rgba(201,127,30,0.3)}
+.toast-info{background:#EDEFFD;color:var(--blue);border:1px solid rgba(91,103,241,0.3)}
+@keyframes toastIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── AUTH ── */
+.auth-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px}
+.auth-card{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-xl);padding:44px;box-shadow:var(--shadow)}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.auth-brand{font-family:var(--serif);font-size:28px;font-weight:700;color:var(--ink);letter-spacing:-0.5px}
+.auth-brand span{color:var(--blue)}
+.auth-tagline{color:var(--ink2);font-size:13px;margin-bottom:30px}
+.auth-switch{margin-top:18px;text-align:center;color:var(--ink2);font-size:13px}
+.auth-switch a{color:var(--blue);font-weight:600;cursor:pointer}
+
+/* ── LAYOUT ── */
+.main-layout{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 56px)}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;gap:2px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.sidebar-label{font-size:10px;font-weight:600;color:var(--ink4);text-transform:uppercase;letter-spacing:0.1em;padding:10px 10px 5px;margin-top:4px}
+.sidebar-btn{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;color:var(--ink2);font-size:13px;font-weight:500;padding:8px 12px;border-radius:8px;cursor:pointer;transition:var(--t);text-align:left}
+.sidebar-btn:hover{background:var(--surface2);color:var(--ink)}
+.sidebar-btn.active{background:var(--blue-dim);color:var(--blue)}
+.sidebar-btn .sbi{width:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.sidebar-btn .sbi svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sb-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px}
+.content{padding:30px 34px;max-width:940px}
+
+/* ── SECTIONS ── */
+.section{display:none}
+.section.active-section{display:block;animation:fadeUp 0.2s ease}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.card-title{font-size:14px;font-weight:600;color:var(--ink)}
+.card-sub{font-size:12px;color:var(--ink2);margin-top:2px}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;position:relative;overflow:hidden;transition:var(--t)}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px 2px 0 0}
+.c-blue::before{background:linear-gradient(90deg,var(--blue),var(--blue2))}
+.c-green::before{background:linear-gradient(90deg,var(--green),#4FD6B5)}
+.c-amber::before{background:linear-gradient(90deg,var(--amber),#E8A33D)}
+.c-red::before{background:linear-gradient(90deg,var(--red),var(--purple))}
+.stat-label{font-size:10px;color:var(--ink2);font-weight:600;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:9px}
+.stat-value{font-size:24px;font-weight:700;letter-spacing:-0.5px;color:var(--ink);font-family:var(--mono)}
+.stat-sub{font-size:11px;color:var(--ink3);margin-top:3px}
+
+/* ── BALANCE HERO ── */
+.balance-hero{background:linear-gradient(145deg,var(--surface) 0%,var(--surface2) 100%);border:1px solid var(--border2);border-radius:var(--r-xl);padding:30px;margin-bottom:24px;position:relative;overflow:hidden}
+.balance-hero::after{content:'';position:absolute;top:-50px;right:-50px;width:240px;height:240px;border-radius:50%;background:radial-gradient(ellipse,rgba(61,123,255,0.06),transparent 70%);pointer-events:none}
+.balance-label{font-size:11px;color:var(--ink2);font-weight:600;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:7px}
+.balance-amount{font-size:40px;font-weight:700;letter-spacing:-1.5px;font-family:var(--mono);color:var(--ink);margin-bottom:18px}
+.balance-amount .cur{font-size:20px;color:var(--ink2);font-weight:400;margin-right:2px}
+.balance-actions{display:flex;gap:9px}
+.balance-actions .btn{width:auto;flex:1}
+
+/* ── RISK BADGE ── */
+.risk-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.05em}
+.risk-LOW{background:var(--green-dim);color:var(--green);border:1px solid rgba(30,201,154,0.18)}
+.risk-MEDIUM{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,0.18)}
+.risk-HIGH{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,59,92,0.2)}
+
+/* ── STATUS BADGE ── */
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.03em}
+.status-badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.status-success{background:var(--green-dim);color:var(--green)}.status-success::before{background:var(--green)}
+.status-blocked{background:var(--red-dim);color:var(--red)}.status-blocked::before{background:var(--red)}
+.status-suspicious{background:var(--amber-dim);color:var(--amber)}.status-suspicious::before{background:var(--amber)}
+.status-failed{background:rgba(122,130,168,0.1);color:var(--ink2)}.status-failed::before{background:var(--ink3)}
+.status-pending_otp{background:rgba(108,95,255,0.1);color:var(--purple);border:1px solid rgba(108,95,255,0.2)}.status-pending_otp::before{background:var(--purple)}
+
+/* ── TXN TABLE ── */
+.txn-table{width:100%;border-collapse:collapse}
+.txn-table th{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.08em;padding:0 14px 11px;text-align:left;border-bottom:1px solid var(--border)}
+.txn-table td{padding:12px 14px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+.txn-table tr:last-child td{border-bottom:none}
+.txn-table tr:hover td{background:rgba(66,50,110,0.03)}
+.txn-amount{font-family:var(--mono);font-weight:600;font-size:13px}
+.txn-amount.debit{color:var(--red)}
+.txn-amount.credit{color:var(--green)}
+.txn-recipient{color:var(--ink);font-weight:500}
+.txn-date{color:var(--ink2);font-size:11px;font-family:var(--mono)}
+.txn-flags{font-size:11px;color:var(--ink3);max-width:190px;line-height:1.5}
+.empty-state{padding:60px 20px;text-align:center;color:var(--ink2);font-size:13px}
+.empty-icon{font-size:28px;margin-bottom:10px;opacity:0.35}
+
+/* ── RISK METER ── */
+.risk-meter{margin-top:14px}
+.risk-track{height:5px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.risk-fill{height:100%;border-radius:4px;transition:width 0.55s cubic-bezier(0.4,0,0.2,1)}
+.risk-meter-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-top:4px;font-family:var(--mono)}
+
+/* ── RISK PREVIEW PANEL ── */
+.risk-preview{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-top:12px;display:none}
+.risk-preview.show{display:block}
+.rp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rp-title{font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:0.07em}
+.flags-list{display:flex;flex-direction:column;gap:5px;margin-top:9px}
+.flag-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--amber);background:var(--amber-dim);border-radius:6px;padding:6px 10px;border:1px solid rgba(245,166,35,0.1);line-height:1.4}
+.flag-item.flag-high{color:var(--red);background:var(--red-dim);border-color:rgba(255,59,92,0.12)}
+.flag-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;margin-top:3px}
+
+/* ── CHART ── */
+.mini-chart{display:flex;align-items:flex-end;gap:4px;height:58px;margin-top:12px}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;transition:height 0.5s ease;min-height:2px}
+.bar-label{font-size:9px;color:var(--ink3);font-family:var(--mono)}
+.bar-total{background:rgba(91,103,241,0.35)}
+.bar-blocked{background:rgba(209,79,110,0.55)}
+
+/* ── FRAUD STATS ── */
+.ring-wrap{display:flex;align-items:center;gap:18px;margin:14px 0}
+.ring-labels{display:flex;flex-direction:column;gap:7px}
+.ring-row{display:flex;align-items:center;gap:8px;font-size:13px}
+.ring-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* ── SECTION HEADER ── */
+.section-hd{margin-bottom:24px}
+.section-title{font-size:19px;font-weight:700;letter-spacing:-0.3px;color:var(--ink);margin-bottom:4px}
+.section-sub{font-size:13px;color:var(--ink2)}
+
+/* ── MODAL ── */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(44,37,66,0.42);backdrop-filter:blur(8px);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-backdrop.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-xl);padding:32px;width:100%;max-width:420px;box-shadow:var(--shadow);animation:modalIn 0.22s ease;position:relative}
+@keyframes modalIn{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:scale(1)}}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--ink2);margin-bottom:22px}
+.modal-close{position:absolute;top:18px;right:18px;background:none;border:none;color:var(--ink3);font-size:16px;cursor:pointer;line-height:1;padding:4px;border-radius:5px;transition:var(--t)}
+.modal-close:hover{background:var(--surface2);color:var(--ink)}
+
+/* ── OTP MODAL ── */
+.otp-grid{display:flex;gap:8px;margin:18px 0}
+.otp-input{flex:1;height:54px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--ink);font-size:22px;font-weight:700;text-align:center;font-family:var(--mono);outline:none;transition:var(--t)}
+.otp-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+.otp-timer{font-size:12px;color:var(--ink3);text-align:center;margin-bottom:14px;font-family:var(--mono)}
+
+/* ── VERIFICATION BADGE ── */
+.verify-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;background:rgba(108,95,255,0.1);color:var(--purple);border:1px solid rgba(108,95,255,0.2);margin-bottom:14px}
+
+/* ── BLOCKED OVERLAY ── */
+.blocked-overlay{padding:22px;text-align:center}
+.blocked-icon{width:52px;height:52px;border-radius:50%;background:var(--red-dim);border:2px solid rgba(255,59,92,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:var(--red)}
+.blocked-icon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border3)}
+
+/* ── DIVIDER ── */
+.divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--ink3);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── QUICK AMOUNTS ── */
+.quick-amounts{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}
+.qa-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--ink2);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;transition:var(--t);font-family:var(--mono)}
+.qa-btn:hover{border-color:var(--border2);color:var(--ink);background:var(--surface3)}
+
+/* ── INFO BOX ── */
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px;font-size:12px;color:var(--ink2);line-height:1.65}
+.info-box strong{color:var(--ink)}
+
+/* ── ML STATUS ── */
+.ml-pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid}
+.ml-active{background:var(--green-dim);color:var(--green);border-color:rgba(30,201,154,0.2)}
+.ml-fallback{background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,0.2)}
+.ml-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .main-layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .content{padding:18px 16px}
+  .balance-amount{font-size:30px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .field-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════ AUTH PAGE ═══════════════════════════ -->
+<div id="page-auth" class="page active">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+        </div>
+        <div class="auth-brand">Safe<span>Pay</span></div>
+      </div>
+      <p class="auth-tagline" id="auth-tagline">Sign in to your account</p>
+
+      <div class="alert alert-error" id="auth-error"><span class="alert-icon">&#9888;</span><span id="auth-error-msg"></span></div>
+      <div class="alert alert-success" id="auth-success"><span class="alert-icon">&#10003;</span><span id="auth-success-msg"></span></div>
+
+      <div id="login-form">
+        <div class="field"><label>Username</label><input type="text" id="login-username" placeholder="your_username" autocomplete="username"></div>
+        <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"></div>
+        <button class="btn btn-primary btn-lg" id="login-btn" onclick="doLogin()">
+          <div class="spinner"></div><span class="btn-text">Sign In</span>
+        </button>
+        <div class="auth-switch">New here? <a onclick="showRegister()">Create account &rarr;</a></div>
+      </div>
+
+      <div id="register-form" style="display:none">
+        <div class="field-row">
+          <div class="field"><label>Username</label><input type="text" id="reg-username" placeholder="john_doe" autocomplete="username"></div>
+          <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="john@example.com"></div>
+        </div>
+        <div class="field"><label>Password <span style="color:var(--ink4);font-size:9px">(min 8 chars)</span></label><input type="password" id="reg-password" placeholder="••••••••" autocomplete="new-password"></div>
+        <button class="btn btn-primary btn-lg" id="register-btn" onclick="doRegister()">
+          <div class="spinner"></div><span class="btn-text">Create Account</span>
+        </button>
+        <div class="auth-switch">Already have one? <a onclick="showLogin()">Sign in &rarr;</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ MAIN APP ═══════════════════════════ -->
+<div id="page-app" class="page">
+
+  <div class="topbar">
+    <div class="logo" onclick="showSection('dashboard')">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg>
+      </div>
+      SafePay
+    </div>
+    <div class="topbar-nav">
+      <button class="nav-btn active" id="nav-dashboard" onclick="showSection('dashboard')">Overview</button>
+      <button class="nav-btn" id="nav-transfer" onclick="showSection('transfer')">Send Money</button>
+      <button class="nav-btn" id="nav-history" onclick="showSection('history')">History</button>
+      <button class="nav-btn" id="nav-fraud" onclick="showSection('fraud')">Fraud Stats</button>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="avatar" id="user-avatar-top">U</div>
+        <span id="username-display">user</span>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="main-layout">
+    <nav class="sidebar">
+      <div class="sidebar-label">Wallet</div>
+      <button class="sidebar-btn active" id="sb-dashboard" onclick="showSection('dashboard')">
+        <span class="sbi"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>Overview
+      </button>
+      <button class="sidebar-btn" id="sb-transfer" onclick="showSection('transfer')">
+        <span class="sbi"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></span>Send Money
+      </button>
+      <button class="sidebar-btn" id="sb-addmoney" onclick="showSection('addmoney')">
+        <span class="sbi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></span>Add Money
+      </button>
+      <div class="sidebar-label">Reports</div>
+      <button class="sidebar-btn" id="sb-history" onclick="showSection('history')">
+        <span class="sbi"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></span>Transactions
+      </button>
+      <button class="sidebar-btn" id="sb-fraud" onclick="showSection('fraud')">
+        <span class="sbi"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>Fraud Stats
+        <span class="sb-badge" id="fraud-badge" style="display:none">!</span>
+      </button>
+    </nav>
+
+    <main class="content">
+
+      <!-- ══════════ DASHBOARD ══════════ -->
+      <div id="section-dashboard" class="section">
+        <div class="section-hd">
+          <div class="section-title">Good day, <span id="greet-name">User</span></div>
+          <div class="section-sub">Your wallet at a glance</div>
+        </div>
+
+        <div class="balance-hero">
+          <div class="balance-label">Available Balance</div>
+          <div class="balance-amount"><span class="cur">&#8377;</span><span id="balance-display">0.00</span></div>
+          <div class="balance-actions">
+            <button class="btn btn-primary btn-sm" onclick="showSection('addmoney')">Add Money</button>
+            <button class="btn btn-ghost btn-sm" onclick="showSection('transfer')">Send Money</button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card c-blue"><div class="stat-label">Total Transactions</div><div class="stat-value" id="stat-total">—</div><div class="stat-sub">All time</div></div>
+          <div class="stat-card c-green"><div class="stat-label">Total Sent</div><div class="stat-value" id="stat-sent">—</div><div class="stat-sub">Successful only</div></div>
+          <div class="stat-card c-amber"><div class="stat-label">Avg Risk Score</div><div class="stat-value" id="stat-risk">—</div><div class="stat-sub">Lower is better</div></div>
+          <div class="stat-card c-red"><div class="stat-label">Blocked</div><div class="stat-value" id="stat-blocked">—</div><div class="stat-sub">By fraud detection</div></div>
+        </div>
+
+        <!-- ── Device Location Card ─────────────────────────────────────── -->
+        <div class="card" id="location-card" style="margin-bottom:18px">
+          <div class="card-hd" style="margin-bottom:0">
+            <div style="display:flex;align-items:center;gap:10px;width:100%">
+              <span id="loc-icon" style="font-size:22px">📍</span>
+              <div style="flex:1">
+                <div style="font-size:13.5px;font-weight:600;color:var(--ink)" id="loc-card-title">Acquiring your location…</div>
+                <div style="font-size:12px;color:var(--ink3);margin-top:2px" id="loc-card-sub">Used by fraud detection to verify this is you</div>
+              </div>
+              <div id="loc-status-pill" style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--ink3)">PENDING</div>
+            </div>
+          </div>
+          <div id="loc-detail-row" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div>
+              <div style="font-size:11px;color:var(--ink3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em">Latitude</div>
+              <div style="font-family:var(--mono);font-size:13px;color:var(--ink)" id="loc-lat">—</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--ink3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em">Longitude</div>
+              <div style="font-family:var(--mono);font-size:13px;color:var(--ink)" id="loc-lon">—</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--ink3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em">Accuracy</div>
+              <div style="font-family:var(--mono);font-size:13px;color:var(--ink)" id="loc-acc">—</div>
+            </div>
+          </div>
+          <!-- Unusual location warning banner (hidden by default) -->
+          <div id="loc-unusual-banner" style="display:none;margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(245,166,35,0.10);border:1px solid rgba(245,166,35,0.3);display:none;align-items:flex-start;gap:10px">
+            <span style="font-size:18px;flex-shrink:0">⚠️</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#f5a623;margin-bottom:3px">Unusual Location Warning</div>
+              <div style="font-size:12px;color:var(--ink2);line-height:1.55" id="loc-unusual-msg">You appear to be transacting from an unfamiliar location. Any transactions will require your confirmation.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hd">
+            <div><div class="card-title">7-Day Activity</div><div class="card-sub">Transactions vs blocked (blue / red)</div></div>
+          </div>
+          <div class="mini-chart" id="activity-chart"><div class="empty-state" style="width:100%">Loading activity…</div></div>
+        </div>
+      </div>
+
+      <!-- ══════════ SEND MONEY ══════════ -->
+      <div id="section-transfer" class="section">
+        <div class="section-hd">
+          <div class="section-title">Send Money</div>
+          <div class="section-sub">Real-time fraud analysis on every transfer &nbsp;·&nbsp; <span id="loc-badge" style="font-size:12px;color:var(--ink3)">📍 Acquiring location…</span></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Transfer Details</div></div>
+            <div class="alert alert-error" id="transfer-error"><span class="alert-icon">&#9888;</span><span id="transfer-error-msg"></span></div>
+            <div class="alert alert-success" id="transfer-success"><span class="alert-icon">&#10003;</span><span id="transfer-success-msg"></span></div>
+            <div class="alert alert-warning" id="transfer-warning"><span class="alert-icon">&#9888;</span><span id="transfer-warning-msg"></span></div>
+
+            <div class="field">
+              <label>Recipient Username</label>
+              <input type="text" id="transfer-recipient" placeholder="username" oninput="clearRiskPreview()">
+            </div>
+            <div class="field">
+              <label>Amount (INR)</label>
+              <div class="amount-wrap">
+                <span class="amount-pfx">&#8377;</span>
+                <input type="number" id="transfer-amount" placeholder="0.00" min="1" max="100000" oninput="debouncedPreview()">
+              </div>
+            </div>
+
+            <!-- Risk Preview -->
+            <div class="risk-preview" id="risk-preview">
+              <div class="rp-header">
+                <span class="rp-title">Live Risk Analysis</span>
+                <span id="preview-badge" class="risk-badge risk-LOW">LOW</span>
+              </div>
+              <div class="risk-meter">
+                <div class="risk-track"><div class="risk-fill" id="preview-fill" style="width:0%"></div></div>
+                <div class="risk-meter-labels"><span>Safe</span><span id="preview-score">0</span><span>Fraud</span></div>
+              </div>
+              <div class="flags-list" id="preview-flags"></div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" id="transfer-btn" onclick="doTransfer()" style="margin-top:14px">
+              <div class="spinner"></div><span class="btn-text">Send Money</span>
+            </button>
+          </div>
+
+          <!-- Risk Summary Panel -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card" style="background:var(--bg3)">
+              <div class="card-title" style="margin-bottom:14px">Risk Thresholds</div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <span class="risk-badge risk-LOW">Low</span>
+                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">Score &lt; 30 — Approved</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <span class="risk-badge risk-MEDIUM">Medium</span>
+                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">30–64 — Flagged</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <span class="risk-badge risk-HIGH">High</span>
+                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">65–74 — Verify</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;background:rgba(255,59,92,0.15);color:var(--red);border:1px solid rgba(255,59,92,0.3)">BLOCKED</span>
+                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">&ge; 75 — Rejected</span>
+                </div>
+              </div>
+              <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+                <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:7px">Signals Monitored</div>
+                <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ink2)">
+                  <div>New / unrecognised device</div>
+                  <div>Velocity (&ge;5 txns/hour)</div>
+                  <div>Rapid fire (&ge;3 txns/5 min)</div>
+                  <div>Unusual amount (&gt;5&times; avg)</div>
+                  <div>Large transfer (&ge; &#8377;50K)</div>
+                  <div>Late-night window (UTC 00–04)</div>
+                  <div>Multiple recent failures</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ ADD MONEY ══════════ -->
+      <div id="section-addmoney" class="section">
+        <div class="section-hd">
+          <div class="section-title">Add Money</div>
+          <div class="section-sub">Top up your SafePay wallet</div>
+        </div>
+
+        <div style="max-width:460px">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Wallet Top-up</div></div>
+            <div class="alert alert-error" id="addmoney-error"><span class="alert-icon">&#9888;</span><span id="addmoney-error-msg"></span></div>
+            <div class="alert alert-success" id="addmoney-success"><span class="alert-icon">&#10003;</span><span id="addmoney-success-msg"></span></div>
+
+            <div style="margin-bottom:13px">
+              <div style="font-size:10px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px">Quick Select</div>
+              <div class="quick-amounts">
+                <button class="qa-btn" onclick="setAddAmt(500)">&#8377;500</button>
+                <button class="qa-btn" onclick="setAddAmt(1000)">&#8377;1,000</button>
+                <button class="qa-btn" onclick="setAddAmt(2000)">&#8377;2,000</button>
+                <button class="qa-btn" onclick="setAddAmt(5000)">&#8377;5,000</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Amount (INR)</label>
+              <div class="amount-wrap">
+                <span class="amount-pfx">&#8377;</span>
+                <input type="number" id="addmoney-amount" placeholder="0.00" min="100" max="100000">
+              </div>
+            </div>
+
+            <div class="info-box" style="margin-bottom:14px">
+              <strong>Your wallet starts at ₹0.</strong> Add money via debit/credit card or UPI to start sending payments.
+            </div>
+
+            <button class="btn btn-primary btn-lg" id="addmoney-btn" onclick="doAddMoney()">
+              <div class="spinner"></div><span class="btn-text">Add Money</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ HISTORY ══════════ -->
+      <div id="section-history" class="section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div class="section-hd" style="margin-bottom:0">
+            <div class="section-title">Transaction History</div>
+            <div class="section-sub">All your wallet activity</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <select id="history-filter" onchange="loadHistory()" style="height:34px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--ink);padding:0 12px;font-size:12.5px;cursor:pointer;outline:none">
+              <option value="">All Status</option>
+              <option value="success">Success</option>
+              <option value="suspicious">Suspicious</option>
+              <option value="blocked">Blocked</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="loadHistory()">Refresh</button>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <div id="history-loading" style="padding:40px;text-align:center;color:var(--ink2);font-size:13px">Loading…</div>
+          <div id="history-table-wrap" style="display:none;overflow-x:auto">
+            <table class="txn-table" id="history-table">
+              <thead><tr><th>Date</th><th>Recipient</th><th>Amount</th><th>Method</th><th>Status</th><th>Risk Score</th><th>Flags</th></tr></thead>
+              <tbody id="history-tbody"></tbody>
+            </table>
+          </div>
+          <div id="history-empty" class="empty-state" style="display:none"><div class="empty-icon">&#9656;</div>No transactions found</div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
+          <span id="history-count" style="font-size:11px;color:var(--ink3)"></span>
+          <div style="display:flex;gap:7px">
+            <button class="btn btn-ghost btn-sm" id="hist-prev" onclick="historyPage(-1)" disabled>Prev</button>
+            <button class="btn btn-ghost btn-sm" id="hist-next" onclick="historyPage(1)">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ FRAUD STATS ══════════ -->
+      <div id="section-fraud" class="section">
+        <div class="section-hd">
+          <div class="section-title">Fraud Detection Analytics</div>
+          <div class="section-sub">System-wide protection overview</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card c-blue"><div class="stat-label">Total Transactions</div><div class="stat-value" id="fs-total">—</div></div>
+          <div class="stat-card c-red"><div class="stat-label">Fraud Rate</div><div class="stat-value" id="fs-rate">—</div><div class="stat-sub">of all transactions</div></div>
+          <div class="stat-card c-amber"><div class="stat-label">Blocked</div><div class="stat-value" id="fs-blocked">—</div></div>
+          <div class="stat-card c-green"><div class="stat-label">Avg Risk Score</div><div class="stat-value" id="fs-avg-risk">—</div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">Risk Distribution</div>
+            <div id="risk-dist-bars" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:12px">Detection Engine</div>
+            <div id="ml-status-panel" style="font-size:13px;color:var(--ink2);line-height:1.7">
+              <div id="ml-indicator"></div>
+              <div style="margin-top:10px;font-size:12px;color:var(--ink3)">Hybrid system: LightGBM ML (IEEE-CIS, 432 features) with 7 behavioural rules. Final score = ML&times;0.70 + Rules&times;0.30. Blocked at &ge;75.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border)"><div class="card-title">Recently Blocked</div></div>
+          <div id="blocked-list" style="padding:14px"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ════════ PAYMENT SUCCESS MODAL ════════ -->
+<div class="modal-backdrop" id="payment-modal">
+  <div class="modal" style="text-align:center">
+    <div id="payment-icon" style="width:56px;height:56px;border-radius:50%;background:var(--green-dim);border:2px solid rgba(30,201,154,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--green)">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="modal-title" id="payment-title">Payment Successful</div>
+    <div style="color:var(--ink2);font-size:13px;margin-top:6px;margin-bottom:22px" id="payment-msg"></div>
+    <button class="btn btn-primary" onclick="closePaymentModal()"><span class="btn-text">Go to Dashboard</span></button>
+  </div>
+</div>
+
+<!-- ════════ PAYMENT GATEWAY MODAL ════════ -->
+<div class="modal-backdrop" id="card-modal">
+  <div class="modal" style="max-width:420px;padding:0;overflow:hidden;border-radius:16px">
+
+    <!-- Gateway header bar -->
+    <div style="background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;background:#5B67F1;border-radius:8px;display:flex;align-items:center;justify-content:center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#111">SafePay Checkout</div>
+          <div style="font-size:10px;color:#6b7280">Secured · PCI DSS Level 1</div>
+        </div>
+      </div>
+      <button onclick="closeCardModal()" style="background:#f3f4f6;border:none;color:#6b7280;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">&#x2715;</button>
+    </div>
+
+    <!-- Amount summary -->
+    <div style="background:#f8faff;border-bottom:1px solid #e5e7eb;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:12px;color:#6b7280">Wallet Top-up Amount</div>
+      <div style="font-size:20px;font-weight:800;color:#111;font-family:monospace" id="card-modal-amount">₹0.00</div>
+    </div>
+
+    <!-- Tab switcher: Card | UPI -->
+    <div style="display:flex;background:#f3f4f6;margin:16px 20px 0;border-radius:8px;padding:3px;gap:3px">
+      <button id="tab-card" onclick="switchPayTab('card')"
+        style="flex:1;padding:8px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#111;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+        💳 Debit / Credit Card
+      </button>
+      <button id="tab-upi" onclick="switchPayTab('upi')"
+        style="flex:1;padding:8px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#6b7280">
+        📱 UPI
+      </button>
+    </div>
+
+    <!-- CARD PANEL -->
+    <div id="panel-card" style="padding:16px 20px 20px">
+      <div class="alert alert-error" id="card-modal-error" style="margin-bottom:12px"><span class="alert-icon">&#9888;</span><span id="card-modal-error-msg"></span></div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">Card Number</label>
+        <div style="position:relative">
+          <input id="card-number-input" type="text" inputmode="numeric" maxlength="19"
+            placeholder="0000  0000  0000  0000" oninput="onCardNumberInput(this)"
+            style="width:100%;box-sizing:border-box;background:#fff;border:1.5px solid #d1d5db;border-radius:8px;color:#111;font-size:15px;font-family:monospace;padding:10px 48px 10px 12px;outline:none;letter-spacing:.1em;transition:.15s"
+            onfocus="this.style.borderColor='#5B67F1'" onblur="this.style.borderColor='#d1d5db'">
+          <span id="card-network-badge" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:900;pointer-events:none"></span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">Expiry</label>
+          <input id="card-expiry-input" type="text" inputmode="numeric" maxlength="5" placeholder="MM / YY"
+            oninput="onExpiryInput(this)"
+            style="width:100%;box-sizing:border-box;background:#fff;border:1.5px solid #d1d5db;border-radius:8px;color:#111;font-size:14px;font-family:monospace;padding:10px 12px;outline:none;transition:.15s"
+            onfocus="this.style.borderColor='#5B67F1'" onblur="this.style.borderColor='#d1d5db'">
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">CVV</label>
+          <input id="card-cvv-input" type="password" inputmode="numeric" maxlength="4" placeholder="•••"
+            oninput="onCvvInput(this)"
+            style="width:100%;box-sizing:border-box;background:#fff;border:1.5px solid #d1d5db;border-radius:8px;color:#111;font-size:14px;font-family:monospace;padding:10px 12px;outline:none;transition:.15s"
+            onfocus="this.style.borderColor='#5B67F1'" onblur="this.style.borderColor='#d1d5db'">
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">Name on Card</label>
+        <input id="card-name-input" type="text" maxlength="48" placeholder="As printed on card"
+          style="width:100%;box-sizing:border-box;background:#fff;border:1.5px solid #d1d5db;border-radius:8px;color:#111;font-size:14px;padding:10px 12px;outline:none;transition:.15s"
+          onfocus="this.style.borderColor='#5B67F1'" onblur="this.style.borderColor='#d1d5db'">
+      </div>
+
+      <button id="card-pay-btn" class="btn btn-primary btn-lg" style="width:100%;background:#5B67F1;border-radius:8px" onclick="submitCardPayment()">
+        <div class="spinner"></div><span class="btn-text">Pay Securely</span>
+      </button>
+
+      <!-- Bank logos row -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <span style="font-size:10px;color:#9ca3af">Accepted:</span>
+        <span style="font-size:11px;font-weight:900;color:#1a1f71;letter-spacing:.05em">VISA</span>
+        <span style="font-size:11px;font-weight:900;color:#eb001b">MC</span>
+        <span style="font-size:11px;font-weight:800;color:#1b4f8a">RuPay</span>
+        <span style="font-size:11px;font-weight:800;color:#007bc1">AMEX</span>
+        <span style="font-size:10px;color:#9ca3af;margin-left:6px">🔒 256-bit SSL</span>
+      </div>
+    </div>
+
+    <!-- UPI PANEL -->
+    <div id="panel-upi" style="padding:16px 20px 20px;display:none">
+      <div class="alert alert-error" id="upi-modal-error" style="margin-bottom:12px"><span class="alert-icon">&#9888;</span><span id="upi-modal-error-msg"></span></div>
+
+      <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#166534">
+        <strong>How UPI works:</strong> Enter your UPI ID. A debit request will be sent to your bank app. Approve it there to add money to your wallet.
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px">UPI ID</label>
+        <div style="display:flex;gap:8px">
+          <input id="upi-id-input" type="text" placeholder="yourname@upi" maxlength="60"
+            style="flex:1;background:#fff;border:1.5px solid #d1d5db;border-radius:8px;color:#111;font-size:14px;padding:10px 12px;outline:none;transition:.15s"
+            onfocus="this.style.borderColor='#5B67F1'" onblur="this.style.borderColor='#d1d5db'">
+          <button onclick="verifyUpi()" style="background:#f3f4f6;border:1.5px solid #d1d5db;border-radius:8px;color:#374151;font-size:12px;font-weight:600;padding:0 14px;cursor:pointer;white-space:nowrap">Verify</button>
+        </div>
+        <div id="upi-verified-name" style="font-size:12px;color:#16a34a;font-weight:600;margin-top:6px;display:none"></div>
+      </div>
+
+      <!-- Popular UPI apps -->
+      <div style="margin-bottom:16px">
+        <div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Or pay via app</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button onclick="selectUpiApp('gpay')" class="upi-app-btn" id="upi-btn-gpay"
+            style="background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#111">
+            <span style="font-size:20px">🅖</span> Google Pay
+          </button>
+          <button onclick="selectUpiApp('phonepe')" class="upi-app-btn" id="upi-btn-phonepe"
+            style="background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#111">
+            <span style="font-size:20px">💜</span> PhonePe
+          </button>
+          <button onclick="selectUpiApp('paytm')" class="upi-app-btn" id="upi-btn-paytm"
+            style="background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#111">
+            <span style="font-size:20px">💙</span> Paytm
+          </button>
+          <button onclick="selectUpiApp('bhim')" class="upi-app-btn" id="upi-btn-bhim"
+            style="background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#111">
+            <span style="font-size:20px">🇮🇳</span> BHIM
+          </button>
+        </div>
+      </div>
+
+      <div id="upi-pending-box" style="display:none;background:#fffbeb;border:1.5px solid #fbbf24;border-radius:10px;padding:14px;text-align:center;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:4px">⏳ Awaiting payment approval</div>
+        <div style="font-size:12px;color:#78350f">Check your <strong id="upi-app-name">UPI app</strong> for a payment request of <strong id="upi-pending-amount"></strong></div>
+        <div style="font-size:11px;color:#9ca3af;margin-top:6px" id="upi-countdown"></div>
+      </div>
+
+      <button id="upi-pay-btn" class="btn btn-primary btn-lg" style="width:100%;background:#7c3aed;border-radius:8px" onclick="submitUpiPayment()">
+        <div class="spinner"></div><span class="btn-text">Send Payment Request</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════ OTP VERIFICATION MODAL ════════ -->
+<div class="modal-backdrop" id="otp-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOtpModal()">&#x2715;</button>
+    <div class="verify-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Identity Verification
+    </div>
+    <div class="modal-title">Verify This Transaction</div>
+    <div class="modal-sub" id="otp-sub">We've sent a 6-digit code to your registered email. Enter it below to confirm this transfer.</div>
+
+    <div class="alert alert-error" id="otp-error"><span class="alert-icon">&#9888;</span><span id="otp-error-msg"></span></div>
+
+    <div class="otp-grid">
+      <input class="otp-input" type="text" maxlength="1" id="otp-0" oninput="otpInput(0)">
+      <input class="otp-input" type="text" maxlength="1" id="otp-1" oninput="otpInput(1)">
+      <input class="otp-input" type="text" maxlength="1" id="otp-2" oninput="otpInput(2)">
+      <input class="otp-input" type="text" maxlength="1" id="otp-3" oninput="otpInput(3)">
+      <input class="otp-input" type="text" maxlength="1" id="otp-4" oninput="otpInput(4)">
+      <input class="otp-input" type="text" maxlength="1" id="otp-5" oninput="otpInput(5)">
+    </div>
+    <div class="otp-timer" id="otp-timer">Code expires in 05:00</div>
+
+    <button class="btn btn-amber btn-lg" id="otp-verify-btn" onclick="doVerifyOtp()">
+      <div class="spinner"></div><span class="btn-text">Verify & Complete Transfer</span>
+    </button>
+    <div style="margin-top:12px;text-align:center;font-size:12px;color:var(--ink3)">
+      Didn't get it? <a style="cursor:pointer;color:var(--blue)" onclick="resendOtp()">Resend code</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ BLOCKED MODAL ════════ -->
+<div class="modal-backdrop" id="blocked-modal">
+  <div class="modal">
+    <div class="blocked-overlay">
+      <div class="blocked-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      </div>
+      <div class="modal-title" style="color:var(--red)">Transaction Blocked</div>
+      <div style="color:var(--ink2);font-size:13px;margin:8px 0 18px;line-height:1.6" id="blocked-reason"></div>
+      <div id="blocked-flags" style="text-align:left;margin-bottom:20px"></div>
+      <button class="btn btn-danger" style="width:100%" onclick="closeBlockedModal()">Understood</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Location Warning Modal ─────────────────────────────────────────── -->
+<div class="modal-backdrop" id="location-modal">
+  <div class="modal">
+    <div style="text-align:center">
+      <div style="font-size:42px;margin-bottom:10px">📍</div>
+      <div class="modal-title" style="color:#f5a623;font-size:18px">Unusual Location Detected</div>
+      <div style="color:var(--ink2);font-size:13px;margin:10px 0 18px;line-height:1.65" id="loc-warn-detail">
+        This transaction is being made from a location that differs from your usual area.
+      </div>
+      <div style="background:rgba(245,166,35,0.10);border:1px solid rgba(245,166,35,0.3);border-radius:10px;padding:14px 16px;text-align:left;margin-bottom:20px;font-size:13px;color:var(--ink2)" id="loc-warn-flags"></div>
+      <div style="font-size:13px;color:var(--ink2);margin-bottom:20px;line-height:1.6">
+        If this is really you, you can proceed. Otherwise, cancel immediately and secure your account.
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn" style="flex:1;background:var(--surface2);color:var(--ink)" onclick="cancelLocationWarning()">Cancel Transfer</button>
+        <button class="btn btn-amber" style="flex:1" onclick="proceedDespiteLocation()">It's Me — Proceed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
+/*
+ * Backend API base URL.
+ * Priority:
+ *   1. window.SAFEPAY_API_URL — set this in production, e.g. by adding
+ *      <script>window.SAFEPAY_API_URL = 'https://your-app.onrender.com';</script>
+ *      just before this <script> tag (or before this file loads), so it
+ *      never needs to be edited inline again.
+ *   2. localStorage 'sp_api_url' — handy for pointing a deployed frontend at
+ *      a different backend without a rebuild (set from the browser console:
+ *      localStorage.setItem('sp_api_url','https://...')).
+ *   3. Local dev fallback — the Flask dev server default.
+ */
+const API = window.SAFEPAY_API_URL || localStorage.getItem('sp_api_url') || 'http://127.0.0.1:5000';
+let token    = localStorage.getItem('sp_token') || '';
+let username = localStorage.getItem('sp_user')  || '';
+let userEmail = '';
+let historyOffset = 0;
+const HIST_LIMIT  = 15;
+let previewTimer  = null;
+
+// OTP state
+let pendingTransferPayload = null;
+let otpExpiry              = null;
+let otpTimerInterval       = null;
+let otpVerifyToken         = null;   // server-issued token after successful verify
+
+// ── Location state ───────────────────────────────────────────────────────────
+let currentLocation = null;   // { lat, lon, accuracy } once acquired
+
+function acquireLocation() {
+  if (!navigator.geolocation) {
+    _updateLocationCard('denied');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      currentLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy };
+      console.log('📍 Location acquired:', currentLocation);
+      _updateLocationCard('acquired');
+      // Update the Send Money badge
+      const badge = document.getElementById('loc-badge');
+      if (badge) { badge.textContent = '📍 Location ready'; badge.style.color = 'var(--green)'; }
+    },
+    err => {
+      console.warn('Geolocation denied/unavailable:', err.message);
+      _updateLocationCard('denied');
+      const badge = document.getElementById('loc-badge');
+      if (badge) { badge.textContent = '📍 Location unavailable'; badge.style.color = 'var(--ink3)'; }
+    },
+    { enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 }
+  );
+}
+
+function _updateLocationCard(state) {
+  const title   = document.getElementById('loc-card-title');
+  const sub     = document.getElementById('loc-card-sub');
+  const pill    = document.getElementById('loc-status-pill');
+  const icon    = document.getElementById('loc-icon');
+  const detRow  = document.getElementById('loc-detail-row');
+  if (!title) return;  // dashboard not rendered yet
+
+  if (state === 'acquired' && currentLocation) {
+    icon.textContent  = '📍';
+    title.textContent = 'Location Verified';
+    title.style.color = 'var(--green)';
+    sub.textContent   = 'Your device location is being used to protect every transaction';
+    pill.textContent  = 'ACTIVE';
+    pill.style.background = 'rgba(52,199,89,0.12)';
+    pill.style.color      = 'var(--green)';
+    // Show coords
+    detRow.style.display = 'grid';
+    document.getElementById('loc-lat').textContent = currentLocation.lat.toFixed(5) + '°';
+    document.getElementById('loc-lon').textContent = currentLocation.lon.toFixed(5) + '°';
+    document.getElementById('loc-acc').textContent = currentLocation.accuracy
+      ? '±' + Math.round(currentLocation.accuracy) + ' m' : '—';
+  } else {
+    icon.textContent  = '🔒';
+    title.textContent = 'Location Access Denied';
+    title.style.color = 'var(--ink2)';
+    sub.textContent   = 'Enable location access for stronger fraud protection. Transactions are still allowed.';
+    pill.textContent  = 'OFF';
+    pill.style.background = 'var(--surface2)';
+    pill.style.color      = 'var(--ink3)';
+    detRow.style.display  = 'none';
+  }
+}
+
+function _showUnusualLocationBanner(msg) {
+  const banner = document.getElementById('loc-unusual-banner');
+  if (!banner) return;
+  document.getElementById('loc-unusual-msg').textContent = msg ||
+    'You appear to be transacting from an unfamiliar location. Any transactions will require your confirmation.';
+  banner.style.display = 'flex';
+  // Also flash the card border amber
+  const card = document.getElementById('location-card');
+  if (card) card.style.borderColor = 'rgba(245,166,35,0.4)';
+}
+
+/* ══════════════════════════════════════════════════════
+   API HELPER
+══════════════════════════════════════════════════════ */
+async function api(method, path, body=null) {
+  const opts = {
+    method,
+    headers: {'Content-Type':'application/json',...(token?{'Authorization':`Bearer ${token}`}:{})},
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res  = await fetch(API + path, opts);
+  const data = await res.json();
+  return { ok: res.ok, status: res.status, data };
+}
+
+/* ══════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════ */
+function toast(msg, type='info', ms=3500) {
+  const icons = {success:'&#10003;',error:'&#9888;',warning:'&#9888;',info:'&#9432;'};
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<span style="flex-shrink:0">${icons[type]||''}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>{el.style.animation='toastIn 0.25s ease reverse';setTimeout(()=>el.remove(),250);}, ms);
+}
+
+/* ══════════════════════════════════════════════════════
+   ALERT HELPERS
+══════════════════════════════════════════════════════ */
+function showAlert(id, msg, type='error') {
+  const el = document.getElementById(id);
+  el.className = `alert alert-${type} show`;
+  const msgEl = el.querySelector(`[id="${id}-msg"]`) || el.querySelector('span:last-child');
+  if (msgEl) msgEl.textContent = msg;
+  else el.childNodes[el.childNodes.length-1].textContent = msg;
+}
+function clearAlert(id) { document.getElementById(id).className = 'alert'; }
+function clearAllTransferAlerts() {
+  ['transfer-error','transfer-success','transfer-warning'].forEach(clearAlert);
+}
+
+/* ══════════════════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════════════════ */
+function showRegister() {
+  document.getElementById('login-form').style.display='none';
+  document.getElementById('register-form').style.display='block';
+  document.getElementById('auth-tagline').textContent='Create your SafePay account';
+  clearAlert('auth-error'); clearAlert('auth-success');
+}
+function showLogin() {
+  document.getElementById('register-form').style.display='none';
+  document.getElementById('login-form').style.display='block';
+  document.getElementById('auth-tagline').textContent='Sign in to your account';
+  clearAlert('auth-error'); clearAlert('auth-success');
+}
+
+async function doLogin() {
+  const btn  = document.getElementById('login-btn');
+  const user = document.getElementById('login-username').value.trim();
+  const pass = document.getElementById('login-password').value;
+  clearAlert('auth-error');
+  if (!user||!pass){showAlert('auth-error','Username and password are required');return;}
+  setLoading(btn,true);
+  try {
+    const {ok,data} = await api('POST','/login',{username:user,password:pass});
+    if (ok) {
+      token=data.access_token; username=data.username; userEmail=data.email||'';
+      localStorage.setItem('sp_token',token); localStorage.setItem('sp_user',username);
+      enterApp();
+    } else showAlert('auth-error',data.msg||'Login failed');
+  } catch(e){showAlert('auth-error','Cannot connect to server. Is the backend running?');}
+  finally{setLoading(btn,false);}
+}
+
+async function doRegister() {
+  const btn  = document.getElementById('register-btn');
+  const user = document.getElementById('reg-username').value.trim();
+  const email= document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-password').value;
+  clearAlert('auth-error');
+  if (!user||!email||!pass){showAlert('auth-error','All fields are required');return;}
+  setLoading(btn,true);
+  try {
+    const {ok,data} = await api('POST','/register',{username:user,email,password:pass});
+    if (ok) {
+      document.getElementById('auth-success-msg').textContent='Account created! Please sign in.';
+      document.getElementById('auth-success').className='alert alert-success show';
+      setTimeout(showLogin,900);
+    } else showAlert('auth-error',data.msg||'Registration failed');
+  } catch(e){showAlert('auth-error','Cannot connect to server.');}
+  finally{setLoading(btn,false);}
+}
+
+function doLogout() {
+  token='';username='';userEmail='';
+  localStorage.removeItem('sp_token'); localStorage.removeItem('sp_user');
+  showPage('auth');
+}
+
+async function enterApp() {
+  showPage('app');
+  document.getElementById('username-display').textContent=username;
+  document.getElementById('user-avatar-top').textContent=username[0].toUpperCase();
+  document.getElementById('greet-name').textContent=username;
+  document.getElementById('transfer-device') && (document.getElementById('transfer-device').value=navigator.userAgent.slice(0,40));
+  // Get email if not set
+  if (!userEmail) {
+    try { const {ok,data}=await api('GET','/me'); if(ok) userEmail=data.email||''; } catch(e){}
+  }
+  // Acquire GPS location for fraud detection
+  acquireLocation();
+  showSection('dashboard');
+  loadDashboard();
+}
+
+/* ══════════════════════════════════════════════════════
+   ROUTING
+══════════════════════════════════════════════════════ */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+}
+
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active-section'));
+  const el=document.getElementById(`section-${name}`);
+  if(el) el.classList.add('active-section');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById(`nav-${name}`); if(nb) nb.classList.add('active');
+  document.querySelectorAll('.sidebar-btn').forEach(b=>b.classList.remove('active'));
+  const sb=document.getElementById(`sb-${name}`); if(sb) sb.classList.add('active');
+  if(name==='history'){historyOffset=0;loadHistory();}
+  if(name==='fraud') loadFraudStats();
+  if(name==='dashboard') loadDashboard();
+}
+
+/* ══════════════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════════════ */
+async function loadDashboard() {
+  try {
+    const {ok,data}=await api('GET','/stats');
+    if(!ok) return;
+    document.getElementById('balance-display').textContent=fmt(data.balance);
+    document.getElementById('stat-total').textContent=data.total_transactions;
+    document.getElementById('stat-blocked').textContent=data.blocked_count;
+    document.getElementById('stat-risk').textContent=data.avg_risk_score?data.avg_risk_score.toFixed(1):'0.0';
+    document.getElementById('stat-sent').innerHTML='₹'+Number(data.total_sent).toLocaleString('en-IN',{maximumFractionDigits:0});
+    if(data.blocked_count>0){const b=document.getElementById('fraud-badge');b.style.display='inline';b.textContent=data.blocked_count;}
+    renderChart(data.daily_trend||[]);
+  } catch(e){console.error(e);}
+  // Refresh location card to reflect current GPS state
+  _updateLocationCard(currentLocation ? 'acquired' : 'denied');
+}
+
+function renderChart(trend) {
+  const c=document.getElementById('activity-chart');
+  if(!trend.length){c.innerHTML='<div class="empty-state" style="width:100%">No activity yet</div>';return;}
+  const max=Math.max(...trend.map(d=>d.count),1);
+  c.innerHTML=trend.map(d=>{
+    const th=Math.round((d.count/max)*52); const bh=Math.round((d.blocked/max)*52);
+    return `<div class="bar-col">
+      <div style="position:relative;width:100%;height:58px;display:flex;align-items:flex-end;gap:2px;justify-content:center">
+        <div class="bar-fill bar-total" style="height:${th}px;width:10px" title="${d.count} total"></div>
+        <div class="bar-fill bar-blocked" style="height:${bh}px;width:10px" title="${d.blocked} blocked"></div>
+      </div>
+      <div class="bar-label">${d.day.slice(5)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   TRANSFER — RISK PREVIEW
+══════════════════════════════════════════════════════ */
+function clearRiskPreview() {
+  document.getElementById('risk-preview').classList.remove('show');
+}
+function debouncedPreview() {
+  clearTimeout(previewTimer);
+  previewTimer=setTimeout(doRiskPreview,500);
+}
+
+async function doRiskPreview() {
+  const amount=parseFloat(document.getElementById('transfer-amount').value);
+  if(!amount||amount<=0) return;
+  try {
+    const payload=buildPayload();
+    const {ok,data}=await api('POST','/fraud-check',payload);
+    if(!ok) return;
+    renderRiskPreview(data);
+  } catch(e){}
+}
+
+function renderRiskPreview(data) {
+  const preview=document.getElementById('risk-preview');
+  preview.classList.add('show');
+  document.getElementById('preview-score').textContent=data.risk_score.toFixed(1);
+
+  const badge=document.getElementById('preview-badge');
+  badge.textContent=data.risk_level;
+  badge.className=`risk-badge risk-${data.risk_level}`;
+
+  const fill=document.getElementById('preview-fill');
+  const score=data.risk_score;
+  fill.style.width=score+'%';
+  fill.style.background=score>=75?'var(--red)':score>=65?'#FF7B2F':score>=30?'var(--amber)':'var(--green)';
+
+  const flagsEl=document.getElementById('preview-flags');
+  flagsEl.innerHTML=(data.risk_flags||[]).map(f=>{
+    const isHigh=data.risk_level==='HIGH'||score>=65;
+    return `<div class="flag-item${isHigh?' flag-high':''}"><span class="flag-dot"></span>${esc(f)}</div>`;
+  }).join('');
+}
+
+function buildPayload() {
+  const amount=parseFloat(document.getElementById('transfer-amount').value)||0;
+  const recipient=document.getElementById('transfer-recipient').value.trim();
+  const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const now=new Date();
+  const sow=new Date(now); sow.setHours(0,0,0,0); sow.setDate(now.getDate()-now.getDay());
+  const txnDT=Math.floor((now-sow)/1000);
+  const payload = {
+    amount, recipient, TransactionAmt:amount, TransactionDT:txnDT,
+    timezone:tz, DeviceInfo:navigator.userAgent,
+    id_33:screen.width+'x'+screen.height, user_agent:navigator.userAgent,
+  };
+  // Attach location if we have it
+  if (currentLocation) {
+    payload.lat = currentLocation.lat;
+    payload.lon = currentLocation.lon;
+  }
+  return payload;
+}
+
+/* ══════════════════════════════════════════════════════
+   TRANSFER — MAIN FLOW
+══════════════════════════════════════════════════════ */
+async function doTransfer() {
+  const btn=document.getElementById('transfer-btn');
+  const recipient=document.getElementById('transfer-recipient').value.trim();
+  const amount=parseFloat(document.getElementById('transfer-amount').value);
+  clearAllTransferAlerts();
+
+  if(!recipient){showAlert('transfer-error','Recipient username is required');return;}
+  if(!amount||amount<=0){showAlert('transfer-error','Enter a valid amount');return;}
+  if(amount>100000){showAlert('transfer-error','Max transfer is ₹1,00,000');return;}
+
+  setLoading(btn,true);
+  try {
+    const payload=buildPayload();
+    const {ok,data}=await api('POST','/fraud-check',payload);
+    
+    if(!ok) {showAlert('transfer-error',data.msg||'Failed to assess risk');return;}
+
+    // Update preview
+    renderRiskPreview(data);
+
+    // Route based on risk
+    if(data.would_block) {
+      // BLOCKED — show blocked modal, do NOT proceed
+      showBlockedModal(data);
+    } else if(data.risk_score>=55||data.risk_level==='HIGH'||data.require_otp) {
+      // HIGH RISK — require backend OTP verification
+      pendingTransferPayload=payload;
+      await showOtpModal(data, recipient, amount);
+    } else if(data.unusual_location) {
+      // UNUSUAL LOCATION — show location warning modal, let user confirm or cancel
+      showLocationWarning(data, payload, btn);
+    } else if(data.risk_score>=30||data.risk_level==='MEDIUM') {
+      // MEDIUM — warn user but allow with confirmation
+      const proceed=confirm(`⚠️ Medium risk score (${data.risk_score.toFixed(1)}/100). This transaction will be flagged for review.\n\nReason(s): ${(data.risk_flags||[]).slice(0,2).join('; ')}\n\nProceed anyway?`);
+      if(proceed) await executeTransfer(payload, btn);
+    } else {
+      // LOW risk — proceed directly
+      await executeTransfer(payload, btn);
+    }
+  } catch(e){
+    showAlert('transfer-error','Network error. Is the backend running?');
+  } finally { setLoading(btn,false); }
+}
+
+async function executeTransfer(payload, btn) {
+  setLoading(btn,true);
+  try {
+    const {ok,data}=await api('POST','/transfer',payload);
+    if(data.status==='blocked') {
+      showBlockedModal(data);
+    } else if(data.status==='otp_required'||data.require_otp) {
+      // Backend rejected because OTP verify_token is missing/expired
+      pendingTransferPayload=payload;
+      await showOtpModal(data, payload.recipient, payload.amount||payload.TransactionAmt);
+    } else if(data.status==='suspicious') {
+      showAlert('transfer-warning',`Transfer sent with caution. New balance: ₹${fmt(data.remaining_balance)}`,'warning');
+      toast('Transfer allowed but flagged for review','warning',5000);
+      loadDashboard();
+      clearForm();
+    } else if(ok&&data.status==='success') {
+      const amt=payload.amount||payload.TransactionAmt;
+      showAlert('transfer-success',`₹${fmt(amt)} sent to ${esc(payload.recipient)}. Balance: ₹${fmt(data.remaining_balance)}`,'success');
+      toast(`₹${fmt(amt)} sent to ${esc(payload.recipient)}`,'success');
+      loadDashboard(); clearForm();
+    } else {
+      showAlert('transfer-error',data.msg||'Transfer failed');
+    }
+  } catch(e){showAlert('transfer-error','Network error.');}
+  finally{setLoading(btn,false);}
+}
+
+function clearForm() {
+  document.getElementById('transfer-recipient').value='';
+  document.getElementById('transfer-amount').value='';
+  clearRiskPreview();
+}
+
+/* ══════════════════════════════════════════════════════
+   BLOCKED MODAL
+══════════════════════════════════════════════════════ */
+function showBlockedModal(data) {
+  const score=data.risk_score||data.risk_score;
+  document.getElementById('blocked-reason').textContent=
+    `This transaction was blocked by our fraud detection system. Risk score: ${typeof score==='number'?score.toFixed(1):score}/100. Transactions scoring ≥75 are automatically rejected.`;
+  const flagsEl=document.getElementById('blocked-flags');
+  flagsEl.innerHTML=(data.risk_flags||[]).map(f=>
+    `<div class="flag-item flag-high"><span class="flag-dot"></span>${esc(f)}</div>`
+  ).join('');
+  document.getElementById('blocked-modal').classList.add('show');
+  toast('Transaction blocked by fraud detection','error',6000);
+}
+function closeBlockedModal(){document.getElementById('blocked-modal').classList.remove('show');}
+
+/* ── Location Warning Modal ──────────────────────────────────────────────── */
+let _locationProceedPayload = null;
+let _locationProceedBtn     = null;
+
+function showLocationWarning(data, payload, btn) {
+  _locationProceedPayload = payload;
+  _locationProceedBtn     = btn;
+
+  // Populate detail text
+  const detail = document.getElementById('loc-warn-detail');
+  const flagsEl = document.getElementById('loc-warn-flags');
+
+  const locFlags = (data.risk_flags || []).filter(f => f.toLowerCase().includes('location') || f.toLowerCase().includes('km'));
+  detail.textContent = locFlags.length
+    ? locFlags[0]
+    : 'This transaction is being made from a location different from your usual area.';
+
+  // Show other flags if any
+  const otherFlags = (data.risk_flags || []).filter(f => !locFlags.includes(f));
+  if (otherFlags.length) {
+    flagsEl.innerHTML = otherFlags.map(f =>
+      `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px">
+        <span style="color:#f5a623;flex-shrink:0">⚠</span><span>${esc(f)}</span>
+      </div>`
+    ).join('');
+    flagsEl.style.display = 'block';
+  } else {
+    flagsEl.style.display = 'none';
+  }
+
+  document.getElementById('location-modal').classList.add('show');
+
+  // Also update the dashboard location card with the warning
+  _showUnusualLocationBanner(locFlags[0] || null);
+}
+
+function cancelLocationWarning() {
+  document.getElementById('location-modal').classList.remove('show');
+  _locationProceedPayload = null;
+  _locationProceedBtn     = null;
+  showAlert('transfer-error', 'Transfer cancelled. If you did not initiate this, secure your account immediately.');
+}
+
+async function proceedDespiteLocation() {
+  document.getElementById('location-modal').classList.remove('show');
+  if (_locationProceedPayload && _locationProceedBtn) {
+    await executeTransfer(_locationProceedPayload, _locationProceedBtn);
+  }
+  _locationProceedPayload = null;
+  _locationProceedBtn     = null;
+}
+
+/* ══════════════════════════════════════════════════════
+   OTP MODAL  — server-driven email verification
+══════════════════════════════════════════════════════ */
+function maskEmail(email){
+  const [local,domain]=(email||'').split('@');
+  if(!domain) return email;
+  return local.slice(0,2)+'***@'+domain;
+}
+
+async function showOtpModal(riskData, recipient, amount) {
+  otpVerifyToken = null;
+  for(let i=0;i<6;i++) document.getElementById(`otp-${i}`).value='';
+  clearAlert('otp-error');
+  document.getElementById('otp-modal').classList.add('show');
+
+  // Request OTP from backend (real email send)
+  const sendBtn = document.getElementById('otp-verify-btn');
+  setLoading(sendBtn, true);
+  try {
+    const {ok, data} = await api('POST', '/send-otp', {});
+    if (!ok) {
+      showAlert('otp-error', data.msg || 'Failed to send verification code.');
+      setLoading(sendBtn, false);
+      return;
+    }
+    const masked = data.masked_email || maskEmail(userEmail||'');
+    document.getElementById('otp-sub').textContent =
+      `High-risk transaction (score ${riskData.risk_score.toFixed(1)}/100). A 6-digit code was sent to ${masked}. Enter it to authorise this transfer.`;
+
+    // Demo mode: backend returns the OTP so testers can see it
+    if (data.demo_otp) {
+      toast(`📧 Email OTP (demo mode): ${data.demo_otp}`, 'info', 20000);
+    } else {
+      toast(`Verification code sent to ${masked}`, 'success', 6000);
+    }
+
+    otpExpiry = Date.now() + 5 * 60 * 1000;
+    clearInterval(otpTimerInterval);
+    updateOtpTimer();
+    otpTimerInterval = setInterval(updateOtpTimer, 1000);
+    setTimeout(() => document.getElementById('otp-0').focus(), 100);
+  } catch(e) {
+    showAlert('otp-error', 'Network error sending OTP.');
+  } finally {
+    setLoading(sendBtn, false);
+  }
+}
+
+function updateOtpTimer(){
+  const remaining=Math.max(0,otpExpiry-Date.now());
+  const min=Math.floor(remaining/60000); const sec=Math.floor((remaining%60000)/1000);
+  document.getElementById('otp-timer').textContent=
+    `Code expires in ${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  if(remaining<=0){clearInterval(otpTimerInterval);document.getElementById('otp-timer').textContent='Code expired — request a new one';}
+}
+
+function otpInput(idx){
+  const val=document.getElementById(`otp-${idx}`).value.replace(/[^0-9]/g,'');
+  document.getElementById(`otp-${idx}`).value=val;
+  if(val&&idx<5) document.getElementById(`otp-${idx+1}`).focus();
+  // Auto-submit when all 6 digits entered
+  if(idx===5&&val) doVerifyOtp();
+}
+
+function closeOtpModal(){
+  document.getElementById('otp-modal').classList.remove('show');
+  clearInterval(otpTimerInterval);
+  pendingTransferPayload=null;
+  otpVerifyToken=null;
+}
+
+async function resendOtp(){
+  for(let i=0;i<6;i++) document.getElementById(`otp-${i}`).value='';
+  clearAlert('otp-error');
+  try {
+    const {ok,data} = await api('POST','/send-otp',{});
+    if(!ok){showAlert('otp-error',data.msg||'Could not resend code.');return;}
+    otpExpiry = Date.now()+5*60*1000;
+    clearInterval(otpTimerInterval);
+    updateOtpTimer();
+    otpTimerInterval = setInterval(updateOtpTimer,1000);
+    if(data.demo_otp){
+      toast(`📧 New OTP (demo): ${data.demo_otp}`,'info',20000);
+    } else {
+      toast('New code sent to your email','success',5000);
+    }
+    document.getElementById('otp-0').focus();
+  } catch(e){showAlert('otp-error','Network error.');}
+}
+
+async function doVerifyOtp(){
+  const enteredOtp=[0,1,2,3,4,5].map(i=>document.getElementById(`otp-${i}`).value).join('');
+  clearAlert('otp-error');
+  if(enteredOtp.length<6){showAlert('otp-error','Enter the complete 6-digit code');return;}
+
+  const btn=document.getElementById('otp-verify-btn');
+  setLoading(btn,true);
+  try {
+    // Step 1: Verify OTP with backend
+    const {ok:vok, data:vdata} = await api('POST','/verify-otp',{otp:enteredOtp});
+    if(!vok){
+      showAlert('otp-error', vdata.msg||'Incorrect code.');
+      setLoading(btn,false);
+      return;
+    }
+    // Step 2: Backend issued a verify_token — attach it and execute the transfer
+    const verifyToken = vdata.verify_token;
+    const payload = {...pendingTransferPayload, verify_token: verifyToken};
+    const {ok,data} = await api('POST','/transfer', payload);
+    closeOtpModal();
+    if(data.status==='blocked'){
+      showBlockedModal(data);
+    } else if(ok&&(data.status==='success'||data.status==='suspicious')){
+      const amt=payload.amount||payload.TransactionAmt;
+      showAlert('transfer-success',`✅ Verified & sent ₹${fmt(amt)} to ${esc(payload.recipient)}. Balance: ₹${fmt(data.remaining_balance)}`,'success');
+      toast('Transaction verified and completed','success',5000);
+      loadDashboard(); clearForm();
+    } else {
+      showAlert('transfer-error', data.msg||'Transfer failed after verification');
+    }
+  } catch(e){showAlert('otp-error','Network error during verification.');}
+  finally{setLoading(btn,false);}
+}
+
+/* ══════════════════════════════════════════════════════
+   ADD MONEY — Realistic Card Payment Flow
+══════════════════════════════════════════════════════ */
+function setAddAmt(amt){document.getElementById('addmoney-amount').value=amt;}
+
+/* ── Payment helpers ── */
+function detectCardNetwork(num){
+  const n=num.replace(/\s/g,'');
+  if(/^4/.test(n)) return {name:'Visa',color:'#1a1f71',icon:'VISA'};
+  if(/^5[1-5]/.test(n)||/^2[2-7]/.test(n)) return {name:'Mastercard',color:'#eb001b',icon:'MC'};
+  if(/^3[47]/.test(n)) return {name:'Amex',color:'#007bc1',icon:'AMEX'};
+  if(/^6/.test(n)) return {name:'RuPay',color:'#1b4f8a',icon:'RuPay'};
+  return {name:'',color:'#888',icon:''};
+}
+function formatCardNumber(val){
+  return val.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim();
+}
+function generateRealisticIds(){
+  const c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const r=(n)=>Array.from({length:n},()=>c[Math.floor(Math.random()*c.length)]).join('');
+  const ts=Date.now().toString(36).toUpperCase();
+  return {paymentId:`pay_${ts}${r(8)}`, signature:r(64).toLowerCase()};
+}
+
+let _pendingAddOrder=null;
+let _selectedUpiApp='';
+let _upiCountdownTimer=null;
+
+async function doAddMoney(){
+  const btn=document.getElementById('addmoney-btn');
+  const amount=parseFloat(document.getElementById('addmoney-amount').value);
+  clearAlert('addmoney-error');
+
+  if(!amount||amount<100){showAlert('addmoney-error','Minimum top-up is ₹100');return;}
+  if(amount>100000){showAlert('addmoney-error','Maximum top-up is ₹1,00,000');return;}
+
+  setLoading(btn,true);
+  try{
+    const {ok,data}=await api('POST','/create-order',{amount});
+    if(!ok){showAlert('addmoney-error',data.msg||'Could not create order');return;}
+    _pendingAddOrder={order_id:data.order_id,amount,key_id:data.key_id};
+
+    if(typeof Razorpay!=='undefined'&&data.key_id&&!data.key_id.includes('placeholder')){
+      const rzp=new Razorpay({
+        key:data.key_id,amount:amount*100,currency:'INR',
+        name:'SafePay',description:'Wallet Top-up',order_id:data.order_id,
+        handler:async(res)=>{setLoading(btn,false);await verifyRazorpayPayment(res);},
+        prefill:{name:username,email:userEmail||''},
+        theme:{color:'#5B67F1'},modal:{ondismiss:()=>setLoading(btn,false)},
+      });
+      rzp.open();
+    } else {
+      setLoading(btn,false);
+      openCardModal(amount);
+    }
+  }catch(e){showAlert('addmoney-error','Network error. Is the backend running?');}
+  finally{setLoading(btn,false);}
+}
+
+function openCardModal(amount){
+  document.getElementById('card-modal-amount').textContent=
+    '₹'+amount.toLocaleString('en-IN',{minimumFractionDigits:2});
+  document.getElementById('card-modal').classList.add('show');
+  switchPayTab('card');
+  ['card-number-input','card-expiry-input','card-cvv-input','card-name-input',
+   'upi-id-input'].forEach(id=>{ const el=document.getElementById(id); if(el)el.value=''; });
+  document.getElementById('card-network-badge').textContent='';
+  document.getElementById('upi-verified-name').style.display='none';
+  document.getElementById('upi-pending-box').style.display='none';
+  clearAlert('card-modal-error');
+  clearAlert('upi-modal-error');
+  resetPayBtn('card-pay-btn','Pay Securely');
+  resetPayBtn('upi-pay-btn','Send Payment Request');
+  setTimeout(()=>document.getElementById('card-number-input').focus(),150);
+}
+function closeCardModal(){
+  document.getElementById('card-modal').classList.remove('show');
+  clearInterval(_upiCountdownTimer);
+  _pendingAddOrder=null; _selectedUpiApp='';
+}
+function resetPayBtn(id,label){
+  const b=document.getElementById(id);
+  b.disabled=false; b.innerHTML=`<div class="spinner"></div><span class="btn-text">${label}</span>`;
+}
+function switchPayTab(tab){
+  document.getElementById('panel-card').style.display=tab==='card'?'block':'none';
+  document.getElementById('panel-upi').style.display=tab==='upi'?'block':'none';
+  const active='background:#fff;color:#111;box-shadow:0 1px 3px rgba(0,0,0,.1)';
+  const inactive='background:transparent;color:#6b7280;box-shadow:none';
+  document.getElementById('tab-card').style.cssText+=tab==='card'?active:inactive;
+  document.getElementById('tab-upi').style.cssText+=tab==='upi'?active:inactive;
+}
+
+/* ── Card flow ── */
+function onCardNumberInput(el){
+  el.value=formatCardNumber(el.value);
+  const net=detectCardNetwork(el.value);
+  const badge=document.getElementById('card-network-badge');
+  badge.textContent=net.icon; badge.style.color=net.color;
+  badge.style.fontWeight='900';
+  badge.style.fontSize=net.icon==='VISA'?'14px':'12px';
+}
+function onExpiryInput(el){
+  let v=el.value.replace(/\D/g,'').slice(0,4);
+  if(v.length>=3) v=v.slice(0,2)+'/'+v.slice(2);
+  el.value=v;
+}
+function onCvvInput(el){el.value=el.value.replace(/\D/g,'').slice(0,4);}
+
+async function submitCardPayment(){
+  const num=document.getElementById('card-number-input').value.replace(/\s/g,'');
+  const exp=document.getElementById('card-expiry-input').value;
+  const cvv=document.getElementById('card-cvv-input').value;
+  const name=document.getElementById('card-name-input').value.trim();
+  clearAlert('card-modal-error');
+
+  if(num.length<15||num.length>16){showAlert('card-modal-error','Enter a valid 15 or 16-digit card number.');return;}
+  if(!/^\d{2}\/\d{2}$/.test(exp)){showAlert('card-modal-error','Enter expiry as MM/YY.');return;}
+  const [mm,yy]=exp.split('/').map(Number);
+  if(mm<1||mm>12){showAlert('card-modal-error','Invalid expiry month.');return;}
+  if(new Date(2000+yy,mm-1)<new Date()){showAlert('card-modal-error','This card has expired.');return;}
+  if(cvv.length<3){showAlert('card-modal-error','Enter a valid CVV / CVC.');return;}
+  if(!name){showAlert('card-modal-error','Enter the name printed on your card.');return;}
+
+  const btn=document.getElementById('card-pay-btn');
+  btn.disabled=true;
+  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Processing payment…';
+
+  // Simulate bank auth delay
+  await new Promise(r=>setTimeout(r,1400+Math.random()*1200));
+  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Authenticating with bank…';
+  await new Promise(r=>setTimeout(r,800+Math.random()*700));
+
+  if(!_pendingAddOrder){resetPayBtn('card-pay-btn','Pay Securely');return;}
+  const ids=generateRealisticIds();
+  const {ok,data}=await api('POST','/verify-payment',{
+    razorpay_order_id:_pendingAddOrder.order_id,
+    razorpay_payment_id:ids.paymentId,
+    razorpay_signature:ids.signature,
+  });
+  resetPayBtn('card-pay-btn','Pay Securely');
+  if(ok){
+    const amt=_pendingAddOrder.amount;
+    closeCardModal();
+    showPaymentModal(amt,data.new_balance);
+    loadDashboard();
+    document.getElementById('addmoney-amount').value='';
+  }else{
+    showAlert('card-modal-error',data.msg||'Payment declined. Please check your card details.');
+  }
+}
+
+/* ── UPI flow ── */
+const UPI_BANKS = {
+  gpay:    {name:'Google Pay',hint:'yourname@okaxis'},
+  phonepe: {name:'PhonePe',hint:'yourphone@ybl'},
+  paytm:   {name:'Paytm',hint:'yourphone@paytm'},
+  bhim:    {name:'BHIM UPI',hint:'yourname@upi'},
+};
+
+function selectUpiApp(app){
+  _selectedUpiApp=app;
+  document.querySelectorAll('.upi-app-btn').forEach(b=>{
+    b.style.borderColor='#e5e7eb'; b.style.background='#fff';
+  });
+  const btn=document.getElementById(`upi-btn-${app}`);
+  btn.style.borderColor='#5B67F1'; btn.style.background='#EEF0FE';
+  const info=UPI_BANKS[app];
+  document.getElementById('upi-id-input').placeholder=info.hint;
+}
+
+async function verifyUpi(){
+  const id=document.getElementById('upi-id-input').value.trim();
+  if(!id||!id.includes('@')){showAlert('upi-modal-error','Enter a valid UPI ID (e.g. name@bank)');return;}
+  clearAlert('upi-modal-error');
+  // Simulate UPI ID resolution
+  await new Promise(r=>setTimeout(r,600+Math.random()*400));
+  const parts=id.split('@');
+  const fakeName=parts[0].charAt(0).toUpperCase()+parts[0].slice(1).replace(/\d/g,'');
+  const nameEl=document.getElementById('upi-verified-name');
+  nameEl.textContent='✓ '+fakeName+' ('+parts[1].toUpperCase()+')';
+  nameEl.style.display='block';
+}
+
+async function submitUpiPayment(){
+  const upiId=document.getElementById('upi-id-input').value.trim();
+  clearAlert('upi-modal-error');
+  if(!upiId||!upiId.includes('@')){showAlert('upi-modal-error','Enter a valid UPI ID');return;}
+  if(!_pendingAddOrder){return;}
+
+  const appInfo=_selectedUpiApp?UPI_BANKS[_selectedUpiApp]:{name:'UPI App'};
+  const amount=_pendingAddOrder.amount;
+
+  const btn=document.getElementById('upi-pay-btn');
+  btn.disabled=true;
+  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Sending request…';
+
+  await new Promise(r=>setTimeout(r,900));
+
+  // Show pending box
+  document.getElementById('upi-pending-box').style.display='block';
+  document.getElementById('upi-app-name').textContent=appInfo.name;
+  document.getElementById('upi-pending-amount').textContent=
+    '₹'+amount.toLocaleString('en-IN',{minimumFractionDigits:2});
+  btn.innerHTML='<div class="spinner"></div><span class="btn-text">Waiting for approval…</span>';
+
+  // Countdown 30 s then auto-complete
+  let secs=30;
+  _upiCountdownTimer=setInterval(()=>{
+    secs--;
+    const el=document.getElementById('upi-countdown');
+    if(el) el.textContent=`Auto-confirms in ${secs}s if no response`;
+    if(secs<=0){clearInterval(_upiCountdownTimer);completeUpiPayment(amount);}
+  },1000);
+
+  // Simulate user approving after 3-5 s
+  await new Promise(r=>setTimeout(r,3000+Math.random()*2000));
+  clearInterval(_upiCountdownTimer);
+  completeUpiPayment(amount);
+}
+
+async function completeUpiPayment(amount){
+  if(!_pendingAddOrder) return;
+  const ids=generateRealisticIds();
+  const {ok,data}=await api('POST','/verify-payment',{
+    razorpay_order_id:_pendingAddOrder.order_id,
+    razorpay_payment_id:ids.paymentId,
+    razorpay_signature:ids.signature,
+  });
+  resetPayBtn('upi-pay-btn','Send Payment Request');
+  if(ok){
+    closeCardModal();
+    showPaymentModal(amount,data.new_balance);
+    loadDashboard();
+    document.getElementById('addmoney-amount').value='';
+  }else{
+    document.getElementById('upi-pending-box').style.display='none';
+    showAlert('upi-modal-error',data.msg||'Payment failed. Please try again.');
+  }
+}
+
+async function verifyRazorpayPayment(response){
+  const {ok,data}=await api('POST','/verify-payment',{
+    razorpay_order_id:response.razorpay_order_id,
+    razorpay_payment_id:response.razorpay_payment_id,
+    razorpay_signature:response.razorpay_signature,
+  });
+  if(ok){showPaymentModal(null,data.new_balance);loadDashboard();}
+  else toast('Payment verification failed: '+(data.msg||''),'error');
+}
+
+function showPaymentModal(amount,newBalance){
+  document.getElementById('payment-title').textContent='Payment Successful';
+  document.getElementById('payment-msg').textContent=
+    (amount?`₹${fmt(amount)} added to your wallet. `:'')+'New balance: ₹'+fmt(newBalance);
+  document.getElementById('payment-modal').classList.add('show');
+}
+function closePaymentModal(){document.getElementById('payment-modal').classList.remove('show');showSection('dashboard');}
+
+/* ══════════════════════════════════════════════════════
+   HISTORY
+══════════════════════════════════════════════════════ */
+async function loadHistory() {
+  document.getElementById('history-loading').style.display='block';
+  document.getElementById('history-table-wrap').style.display='none';
+  document.getElementById('history-empty').style.display='none';
+  const filter=document.getElementById('history-filter').value;
+  let path=`/transactions?limit=${HIST_LIMIT}&offset=${historyOffset}`;
+  if(filter) path+=`&status=${filter}`;
+  try {
+    const {ok,data}=await api('GET',path);
+    if(!ok){document.getElementById('history-loading').textContent='Error loading transactions';return;}
+    document.getElementById('history-loading').style.display='none';
+    if(!data.length){
+      document.getElementById('history-empty').style.display='block';
+      document.getElementById('history-count').textContent='No results';
+      document.getElementById('hist-prev').disabled=historyOffset===0;
+      document.getElementById('hist-next').disabled=true;
+      return;
+    }
+    const tbody=document.getElementById('history-tbody');
+    tbody.innerHTML=data.map(t=>{
+      let flags=[]; try{flags=JSON.parse(t.risk_flags||'[]');}catch(e){flags=t.risk_flags||[];}
+      const isCredit=t.recipient==='WALLET_CREDIT';
+      return `<tr>
+        <td><span class="txn-date">${fmtDate(t.created_at)}</span></td>
+        <td><span class="txn-recipient">${esc(isCredit?'Wallet Credit':t.recipient||'—')}</span></td>
+        <td><span class="txn-amount ${isCredit?'credit':'debit'}">${isCredit?'+':'-'}&#8377;${Number(t.amount).toLocaleString('en-IN',{minimumFractionDigits:2})}</span></td>
+        <td><span style="font-size:11px;color:var(--ink2)">${t.payment_method||'wallet'}</span></td>
+        <td><span class="status-badge status-${t.status}">${t.status}</span></td>
+        <td>
+          <span class="risk-badge risk-${t.risk_level}">${t.risk_level}</span>
+          <span style="font-size:11px;color:var(--ink3);margin-left:5px;font-family:var(--mono)">${(t.risk_score||0).toFixed(1)}</span>
+        </td>
+        <td><div class="txn-flags">${flags.slice(0,2).map(f=>`<div style="line-height:1.5">&#8226; ${esc(f)}</div>`).join('')}</div></td>
+      </tr>`;
+    }).join('');
+    document.getElementById('history-table-wrap').style.display='block';
+    document.getElementById('history-count').textContent=`Showing ${historyOffset+1}–${historyOffset+data.length}`;
+    document.getElementById('hist-prev').disabled=historyOffset===0;
+    document.getElementById('hist-next').disabled=data.length<HIST_LIMIT;
+  } catch(e){document.getElementById('history-loading').textContent='Network error';}
+}
+
+function historyPage(dir){historyOffset=Math.max(0,historyOffset+dir*HIST_LIMIT);loadHistory();}
+
+/* ══════════════════════════════════════════════════════
+   FRAUD STATS
+══════════════════════════════════════════════════════ */
+async function loadFraudStats() {
+  try {
+    const {ok,data}=await api('GET','/fraud-stats');
+    if(!ok) return;
+    document.getElementById('fs-total').textContent=data.total_transactions;
+    document.getElementById('fs-blocked').textContent=data.blocked_count;
+    document.getElementById('fs-rate').textContent=(data.fraud_rate_pct||0).toFixed(1)+'%';
+    document.getElementById('fs-avg-risk').textContent=(data.avg_risk_score||0).toFixed(1);
+
+    const dist=data.risk_distribution||{}; const total=Object.values(dist).reduce((a,b)=>a+b,0)||1;
+    const colors={LOW:'var(--green)',MEDIUM:'var(--amber)',HIGH:'var(--red)'};
+    document.getElementById('risk-dist-bars').innerHTML=['LOW','MEDIUM','HIGH'].map(lvl=>{
+      const cnt=dist[lvl]||0; const pct=Math.round(cnt/total*100);
+      return `<div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink2);margin-bottom:4px">
+          <span class="risk-badge risk-${lvl}">${lvl}</span>
+          <span style="font-family:var(--mono)">${cnt} (${pct}%)</span>
+        </div>
+        <div style="height:5px;background:var(--surface3);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${colors[lvl]};border-radius:3px;transition:width 0.55s ease"></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('ml-indicator').innerHTML=data.ml_available
+      ?`<span class="ml-pill ml-active"><span class="ml-dot"></span>ML Model Active</span> &mdash; LightGBM, 432 features`
+      :`<span class="ml-pill ml-fallback"><span class="ml-dot"></span>Rule-Based Fallback</span> &mdash; ML model not loaded`;
+
+    const blockedEl=document.getElementById('blocked-list');
+    if(!data.recent_blocked?.length){
+      blockedEl.innerHTML='<div class="empty-state"><div class="empty-icon">&#9830;</div>No blocked transactions</div>';
+    } else {
+      blockedEl.innerHTML=data.recent_blocked.map(t=>`
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <span style="font-weight:600;font-size:13px">${esc(t.username)}</span>
+            <span style="color:var(--ink2);font-size:12px;margin-left:5px">to ${esc(t.recipient||'?')}</span>
+            <div style="font-size:11px;color:var(--ink3);margin-top:2px;font-family:var(--mono)">${fmtDate(t.created_at)}</div>
+            <div style="margin-top:5px">${(t.risk_flags||[]).slice(0,2).map(f=>`<div style="font-size:11px;color:var(--red);margin-bottom:2px">&#8226; ${esc(f)}</div>`).join('')}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:14px">
+            <div style="font-family:var(--mono);font-weight:600;color:var(--red)">&#8377;${Number(t.amount).toLocaleString('en-IN')}</div>
+            <div style="margin-top:4px"><span class="status-badge status-blocked">blocked</span></div>
+            <div style="font-size:10px;color:var(--ink3);margin-top:4px;font-family:var(--mono)">Score: ${(t.risk_score||0).toFixed(1)}</div>
+          </div>
+        </div>`).join('');
+    }
+  } catch(e){console.error(e);}
+}
+
+/* ══════════════════════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════════════════════ */
+function setLoading(btn,state){btn.classList.toggle('loading',state);btn.disabled=state;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmt(n){return Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtDate(ts){
+  if(!ts) return '—';
+  try{
+    const d=new Date(ts.replace(' ','T')+(ts.includes('T')?'':'Z'));
+    return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  }catch{return ts;}
+}
+
+/* ══════════════════════════════════════════════════════
+   KEYBOARD
+══════════════════════════════════════════════════════ */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const lf=document.getElementById('login-form'); const rf=document.getElementById('register-form');
+    if(lf.style.display!=='none'&&document.getElementById('page-auth').classList.contains('active')) doLogin();
+    else if(rf.style.display!=='none'&&document.getElementById('page-auth').classList.contains('active')) doRegister();
+  }
+  if(e.key==='Escape'){
+    closeOtpModal(); closeBlockedModal();
+    document.getElementById('payment-modal').classList.remove('show');
+  }
+});
+
+// OTP backspace handling
+document.addEventListener('keydown',e=>{
+  if(e.key==='Backspace'){
+    const focused=document.activeElement;
+    if(focused&&focused.classList.contains('otp-input')&&!focused.value){
+      const idx=parseInt(focused.id.split('-')[1]);
+      if(idx>0) document.getElementById(`otp-${idx-1}`).focus();
+    }
+  }
+});
+
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+(async()=>{
+  if(token&&username){
+    try{const{ok}=await api('GET','/me');if(ok){enterApp();return;}}catch(e){}
+    token='';username='';localStorage.removeItem('sp_token');localStorage.removeItem('sp_user');
+  }
+  showPage('auth');
+})();
+</script>
+<script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
+</body>
+</html>

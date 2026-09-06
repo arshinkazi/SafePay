@@ -1,0 +1,36 @@
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+
+# ── SQLite ────────────────────────────────────────────────────────────────────
+# This project ships with no pre-seeded safepay.db — init_db() creates an
+# empty schema on first run, so the .db file is a local runtime artifact and
+# is safe to ignore. If you intentionally add seed data later, un-ignore it
+# explicitly (`git add -f backend/safepay.db`) rather than removing this line.
+backend/*.db
+*.db-journal
+*.sqlite-journal
+*.db-shm
+*.db-wal
+
+# ── Node (in case any tooling is added later) ────────────────────────────────
+node_modules/
+
+# ── OS / editor ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
