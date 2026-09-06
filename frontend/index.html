@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SafePay — Fraud-Protected Payments</title>
+<title>SafePay - Fraud-Protected Payments</title>
 <script>
   // ══════════════════════════════════════════════════════════════════
   // DEPLOYMENT CONFIG — the only line you need to change to deploy.
@@ -913,7 +913,8 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
  * Backend API base URL.
  * Priority:
  *   1. window.SAFEPAY_API_URL — set this in production, e.g. by adding
- *      <script>window.SAFEPAY_API_URL = 'https://your-app.onrender.com';</script>
+ *      *     Set window.SAFEPAY_API_URL before this script loads, e.g.:
+*     window.SAFEPAY_API_URL = 'https://your-app.onrender.com';
  *      just before this <script> tag (or before this file loads), so it
  *      never needs to be edited inline again.
  *   2. localStorage 'sp_api_url' — handy for pointing a deployed frontend at
