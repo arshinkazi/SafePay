@@ -1,5 +1,5 @@
 """
-fraud_engine.py — Rule-Based Fraud Detection Engine (v3)
+fraud_engine.py - Rule-Based Fraud Detection Engine (v3)
 =========================================================
 The ML model (LightGBM / IEEE-CIS features) requires C1-V339 Vesta features
 that are not available at transaction time from our web frontend, so it always
@@ -59,7 +59,7 @@ LOCATION_TRUST_KM = 50
 
 class FraudResult(NamedTuple):
     risk_score:       float
-    ml_score:         float   # always 0.0 — kept for API compat
+    ml_score:         float   # always 0.0 - kept for API compat
     rule_score:       float
     risk_level:       str
     risk_flags:       list
@@ -119,7 +119,7 @@ def _check_location(payload: dict, username: str, db):
     )
     return (
         float(W_UNUSUAL_LOCATION),
-        [f"Unusual location — transaction initiated {min_dist:.0f} km from your usual area"],
+        [f"Unusual location - transaction initiated {min_dist:.0f} km from your usual area"],
         True,
     )
 
@@ -153,12 +153,12 @@ def _rule_score(payload: dict, username: str, db):
         ).fetchone()[0]
         if prev == 0:
             score += W_FIRST_TIME_RECIP
-            flags.append(f"First-ever transfer to '{recip}' — new recipient")
+            flags.append(f"First-ever transfer to '{recip}' - new recipient")
 
     # ── 3. Round-amount structuring ───────────────────────────────────────────
     if amount >= 5_000 and int(amount) % 1_000 == 0:
         score += W_ROUND_AMOUNT
-        flags.append(f"Round amount ₹{amount:,.0f} — common in structured fraud")
+        flags.append(f"Round amount ₹{amount:,.0f} - common in structured fraud")
 
     # ── 4. Amount vs 30-day personal average ──────────────────────────────────
     t30 = (now - datetime.timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
@@ -178,7 +178,7 @@ def _rule_score(payload: dict, username: str, db):
     # ── 5. Absolute large-amount tiers ────────────────────────────────────────
     if amount >= 80_000:
         score += W_LARGE_AMOUNT_80K
-        flags.append(f"Very high-value transfer: ₹{amount:,.0f} — mandatory review")
+        flags.append(f"Very high-value transfer: ₹{amount:,.0f} - mandatory review")
     elif amount >= 50_000:
         score += W_LARGE_AMOUNT_50K
         flags.append(f"High-value transfer: ₹{amount:,.0f} exceeds ₹50,000 threshold")
@@ -192,7 +192,7 @@ def _rule_score(payload: dict, username: str, db):
     ).fetchone()[0]
     if n_1h >= 4:
         score += W_HIGH_VELOCITY
-        flags.append(f"High velocity — {n_1h} transactions in the last hour")
+        flags.append(f"High velocity - {n_1h} transactions in the last hour")
 
     # ── 7. Rapid-fire (last 5 min) ────────────────────────────────────────────
     t5m = (now - datetime.timedelta(minutes=5)).strftime("%Y-%m-%d %H:%M:%S")
@@ -202,7 +202,7 @@ def _rule_score(payload: dict, username: str, db):
     ).fetchone()[0]
     if n_5m >= 2:
         score += W_RAPID_FIRE
-        flags.append(f"Rapid-fire pattern — {n_5m} transactions in the last 5 minutes")
+        flags.append(f"Rapid-fire pattern - {n_5m} transactions in the last 5 minutes")
 
     # ── 8. Recent failures / blocks ───────────────────────────────────────────
     t24h = (now - datetime.timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
@@ -219,7 +219,7 @@ def _rule_score(payload: dict, username: str, db):
     h = now.hour
     if h >= 23 or h < 5:
         score += W_LATE_NIGHT
-        flags.append(f"Initiated at {now.strftime('%H:%M')} UTC — outside normal banking hours")
+        flags.append(f"Initiated at {now.strftime('%H:%M')} UTC - outside normal banking hours")
 
     # ── 10. Dormant account sudden activity ───────────────────────────────────
     last_ok = db.execute(
@@ -234,7 +234,7 @@ def _rule_score(payload: dict, username: str, db):
             if idle_days >= 21:
                 score += W_DORMANT_ACCOUNT
                 flags.append(
-                    f"Account inactive for {idle_days} days — sudden high-value activity"
+                    f"Account inactive for {idle_days} days - sudden high-value activity"
                 )
         except Exception:
             pass
@@ -250,7 +250,7 @@ def _rule_score(payload: dict, username: str, db):
     ).fetchone()[0]
     if n_recip >= 3:
         score += W_MULTI_RECIPIENT
-        flags.append(f"Transferring to {n_recip} different recipients today — unusual fan-out")
+        flags.append(f"Transferring to {n_recip} different recipients today - unusual fan-out")
 
     # ── 12. Escalating amounts (last 3 successful) ────────────────────────────
     recent = db.execute(
@@ -263,7 +263,7 @@ def _rule_score(payload: dict, username: str, db):
         if a3 > 0 and a2 > a3 and a1 > a2 and a1 > a3 * 3:
             score += W_ESCALATING_AMOUNTS
             flags.append(
-                "Rapidly escalating transfer amounts — possible limit-probing behaviour"
+                "Rapidly escalating transfer amounts - possible limit-probing behaviour"
             )
 
     # ── 13. Location ──────────────────────────────────────────────────────────
@@ -287,7 +287,7 @@ def score_transaction(payload: dict, username: str, db) -> FraudResult:
     if combined >= HIGH_THRESHOLD:
         level = "HIGH"
         if should_block:
-            flags.insert(0, f"Risk score {combined:.0f}/100 — automatically blocked (threshold: {BLOCK_THRESHOLD})")
+            flags.insert(0, f"Risk score {combined:.0f}/100 - automatically blocked (threshold: {BLOCK_THRESHOLD})")
     elif combined >= MEDIUM_THRESHOLD:
         level = "MEDIUM"
     else:
