@@ -6,11 +6,11 @@
 <title>SafePay - Fraud-Protected Payments</title>
 <script>
   // ══════════════════════════════════════════════════════════════════
-  // DEPLOYMENT CONFIG — the only line you need to change to deploy.
+  // DEPLOYMENT CONFIG - the only line you need to change to deploy.
   // Local development: leave this as ''  (falls back to the Flask dev
-  //   server at http://127.0.0.1:5000 — see the API constant below).
+  //   server at http://127.0.0.1:5000 - see the API constant below).
   // Production: set this to your deployed backend URL, e.g. the Render
-  //   service URL — 'https://safepay-backend.onrender.com'  (no trailing
+  //   service URL - 'https://safepay-backend.onrender.com'  (no trailing
   //   slash). Redeploy the frontend after changing it.
   // ══════════════════════════════════════════════════════════════════
   window.SAFEPAY_API_URL = '';
@@ -270,7 +270,7 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
 
 /* ── OTP MODAL ── */
 .otp-grid{display:flex;gap:8px;margin:18px 0}
-.otp-input{flex:1;height:54px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--ink);font-size:22px;font-weight:700;text-align:center;font-family:var(--mono);outline:none;transition:var(--t)}
+.otp-input{flex:1;min-width:0;box-sizing:border-box;height:54px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--ink);font-size:22px;font-weight:700;text-align:center;font-family:var(--mono);outline:none;transition:var(--t)}
 .otp-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
 .otp-timer{font-size:12px;color:var(--ink3);text-align:center;margin-bottom:14px;font-family:var(--mono)}
 
@@ -428,17 +428,19 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
         </div>
 
         <div class="stats-grid">
-          <div class="stat-card c-blue"><div class="stat-label">Total Transactions</div><div class="stat-value" id="stat-total">—</div><div class="stat-sub">All time</div></div>
-          <div class="stat-card c-green"><div class="stat-label">Total Sent</div><div class="stat-value" id="stat-sent">—</div><div class="stat-sub">Successful only</div></div>
-          <div class="stat-card c-amber"><div class="stat-label">Avg Risk Score</div><div class="stat-value" id="stat-risk">—</div><div class="stat-sub">Lower is better</div></div>
-          <div class="stat-card c-red"><div class="stat-label">Blocked</div><div class="stat-value" id="stat-blocked">—</div><div class="stat-sub">By fraud detection</div></div>
+          <div class="stat-card c-blue"><div class="stat-label">Total Transactions</div><div class="stat-value" id="stat-total">N/A</div><div class="stat-sub">All time</div></div>
+          <div class="stat-card c-green"><div class="stat-label">Total Sent</div><div class="stat-value" id="stat-sent">N/A</div><div class="stat-sub">Successful only</div></div>
+          <div class="stat-card c-amber"><div class="stat-label">Avg Risk Score</div><div class="stat-value" id="stat-risk">N/A</div><div class="stat-sub">Lower is better</div></div>
+          <div class="stat-card c-red"><div class="stat-label">Blocked</div><div class="stat-value" id="stat-blocked">N/A</div><div class="stat-sub">By fraud detection</div></div>
         </div>
 
         <!-- ── Device Location Card ─────────────────────────────────────── -->
         <div class="card" id="location-card" style="margin-bottom:18px">
           <div class="card-hd" style="margin-bottom:0">
             <div style="display:flex;align-items:center;gap:10px;width:100%">
-              <span id="loc-icon" style="font-size:22px">📍</span>
+              <span id="loc-icon" style="display:inline-flex;color:var(--ink3)">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </span>
               <div style="flex:1">
                 <div style="font-size:13.5px;font-weight:600;color:var(--ink)" id="loc-card-title">Acquiring your location…</div>
                 <div style="font-size:12px;color:var(--ink3);margin-top:2px" id="loc-card-sub">Used by fraud detection to verify this is you</div>
@@ -449,20 +451,20 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
           <div id="loc-detail-row" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
             <div>
               <div style="font-size:11px;color:var(--ink3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em">Latitude</div>
-              <div style="font-family:var(--mono);font-size:13px;color:var(--ink)" id="loc-lat">—</div>
+              <div style="font-family:var(--mono);font-size:13px;color:var(--ink)" id="loc-lat">N/A</div>
             </div>
             <div>
               <div style="font-size:11px;color:var(--ink3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em">Longitude</div>
-              <div style="font-family:var(--mono);font-size:13px;color:var(--ink)" id="loc-lon">—</div>
+              <div style="font-family:var(--mono);font-size:13px;color:var(--ink)" id="loc-lon">N/A</div>
             </div>
             <div>
               <div style="font-size:11px;color:var(--ink3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em">Accuracy</div>
-              <div style="font-family:var(--mono);font-size:13px;color:var(--ink)" id="loc-acc">—</div>
+              <div style="font-family:var(--mono);font-size:13px;color:var(--ink)" id="loc-acc">N/A</div>
             </div>
           </div>
           <!-- Unusual location warning banner (hidden by default) -->
           <div id="loc-unusual-banner" style="display:none;margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(245,166,35,0.10);border:1px solid rgba(245,166,35,0.3);display:none;align-items:flex-start;gap:10px">
-            <span style="font-size:18px;flex-shrink:0">⚠️</span>
+            <span style="font-size:18px;flex-shrink:0">&#9888;</span>
             <div>
               <div style="font-size:13px;font-weight:600;color:#f5a623;margin-bottom:3px">Unusual Location Warning</div>
               <div style="font-size:12px;color:var(--ink2);line-height:1.55" id="loc-unusual-msg">You appear to be transacting from an unfamiliar location. Any transactions will require your confirmation.</div>
@@ -482,7 +484,7 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
       <div id="section-transfer" class="section">
         <div class="section-hd">
           <div class="section-title">Send Money</div>
-          <div class="section-sub">Real-time fraud analysis on every transfer &nbsp;·&nbsp; <span id="loc-badge" style="font-size:12px;color:var(--ink3)">📍 Acquiring location…</span></div>
+          <div class="section-sub">Real-time fraud analysis on every transfer &nbsp;·&nbsp; <span id="loc-badge" style="font-size:12px;color:var(--ink3)">Acquiring location…</span></div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
@@ -529,19 +531,19 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
               <div style="display:flex;flex-direction:column;gap:9px">
                 <div style="display:flex;align-items:center;justify-content:space-between">
                   <span class="risk-badge risk-LOW">Low</span>
-                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">Score &lt; 30 — Approved</span>
+                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">Score &lt; 30 - Approved</span>
                 </div>
                 <div style="display:flex;align-items:center;justify-content:space-between">
                   <span class="risk-badge risk-MEDIUM">Medium</span>
-                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">30–64 — Flagged</span>
+                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">30–64 - Flagged</span>
                 </div>
                 <div style="display:flex;align-items:center;justify-content:space-between">
                   <span class="risk-badge risk-HIGH">High</span>
-                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">65–74 — Verify</span>
+                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">65–74 - Verify</span>
                 </div>
                 <div style="display:flex;align-items:center;justify-content:space-between">
                   <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;background:rgba(255,59,92,0.15);color:var(--red);border:1px solid rgba(255,59,92,0.3)">BLOCKED</span>
-                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">&ge; 75 — Rejected</span>
+                  <span style="font-size:12px;color:var(--ink2);font-family:var(--mono)">&ge; 75 - Rejected</span>
                 </div>
               </div>
               <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
@@ -649,10 +651,10 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
         </div>
 
         <div class="stats-grid">
-          <div class="stat-card c-blue"><div class="stat-label">Total Transactions</div><div class="stat-value" id="fs-total">—</div></div>
-          <div class="stat-card c-red"><div class="stat-label">Fraud Rate</div><div class="stat-value" id="fs-rate">—</div><div class="stat-sub">of all transactions</div></div>
-          <div class="stat-card c-amber"><div class="stat-label">Blocked</div><div class="stat-value" id="fs-blocked">—</div></div>
-          <div class="stat-card c-green"><div class="stat-label">Avg Risk Score</div><div class="stat-value" id="fs-avg-risk">—</div></div>
+          <div class="stat-card c-blue"><div class="stat-label">Total Transactions</div><div class="stat-value" id="fs-total">N/A</div></div>
+          <div class="stat-card c-red"><div class="stat-label">Fraud Rate</div><div class="stat-value" id="fs-rate">N/A</div><div class="stat-sub">of all transactions</div></div>
+          <div class="stat-card c-amber"><div class="stat-label">Blocked</div><div class="stat-value" id="fs-blocked">N/A</div></div>
+          <div class="stat-card c-green"><div class="stat-label">Avg Risk Score</div><div class="stat-value" id="fs-avg-risk">N/A</div></div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px">
@@ -719,11 +721,11 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
     <div style="display:flex;background:#f3f4f6;margin:16px 20px 0;border-radius:8px;padding:3px;gap:3px">
       <button id="tab-card" onclick="switchPayTab('card')"
         style="flex:1;padding:8px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#111;box-shadow:0 1px 3px rgba(0,0,0,.1)">
-        💳 Debit / Credit Card
+        Debit / Credit Card
       </button>
       <button id="tab-upi" onclick="switchPayTab('upi')"
         style="flex:1;padding:8px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#6b7280">
-        📱 UPI
+        UPI
       </button>
     </div>
 
@@ -777,7 +779,7 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
         <span style="font-size:11px;font-weight:900;color:#eb001b">MC</span>
         <span style="font-size:11px;font-weight:800;color:#1b4f8a">RuPay</span>
         <span style="font-size:11px;font-weight:800;color:#007bc1">AMEX</span>
-        <span style="font-size:10px;color:#9ca3af;margin-left:6px">🔒 256-bit SSL</span>
+        <span style="font-size:10px;color:#9ca3af;margin-left:6px">256-bit SSL</span>
       </div>
     </div>
 
@@ -806,25 +808,25 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <button onclick="selectUpiApp('gpay')" class="upi-app-btn" id="upi-btn-gpay"
             style="background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#111">
-            <span style="font-size:20px">🅖</span> Google Pay
+            Google Pay
           </button>
           <button onclick="selectUpiApp('phonepe')" class="upi-app-btn" id="upi-btn-phonepe"
             style="background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#111">
-            <span style="font-size:20px">💜</span> PhonePe
+            PhonePe
           </button>
           <button onclick="selectUpiApp('paytm')" class="upi-app-btn" id="upi-btn-paytm"
             style="background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#111">
-            <span style="font-size:20px">💙</span> Paytm
+            Paytm
           </button>
           <button onclick="selectUpiApp('bhim')" class="upi-app-btn" id="upi-btn-bhim"
             style="background:#fff;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#111">
-            <span style="font-size:20px">🇮🇳</span> BHIM
+            BHIM
           </button>
         </div>
       </div>
 
       <div id="upi-pending-box" style="display:none;background:#fffbeb;border:1.5px solid #fbbf24;border-radius:10px;padding:14px;text-align:center;margin-bottom:14px">
-        <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:4px">⏳ Awaiting payment approval</div>
+        <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:4px">Awaiting payment approval</div>
         <div style="font-size:12px;color:#78350f">Check your <strong id="upi-app-name">UPI app</strong> for a payment request of <strong id="upi-pending-amount"></strong></div>
         <div style="font-size:11px;color:#9ca3af;margin-top:6px" id="upi-countdown"></div>
       </div>
@@ -888,7 +890,9 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
 <div class="modal-backdrop" id="location-modal">
   <div class="modal">
     <div style="text-align:center">
-      <div style="font-size:42px;margin-bottom:10px">📍</div>
+      <div style="color:#f5a623;margin-bottom:10px">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
       <div class="modal-title" style="color:#f5a623;font-size:18px">Unusual Location Detected</div>
       <div style="color:var(--ink2);font-size:13px;margin:10px 0 18px;line-height:1.65" id="loc-warn-detail">
         This transaction is being made from a location that differs from your usual area.
@@ -899,7 +903,7 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
       </div>
       <div style="display:flex;gap:10px">
         <button class="btn" style="flex:1;background:var(--surface2);color:var(--ink)" onclick="cancelLocationWarning()">Cancel Transfer</button>
-        <button class="btn btn-amber" style="flex:1" onclick="proceedDespiteLocation()">It's Me — Proceed</button>
+        <button class="btn btn-amber" style="flex:1" onclick="proceedDespiteLocation()">It's Me - Proceed</button>
       </div>
     </div>
   </div>
@@ -912,15 +916,14 @@ body::after{content:'';position:fixed;top:-180px;left:50%;transform:translateX(-
 /*
  * Backend API base URL.
  * Priority:
- *   1. window.SAFEPAY_API_URL — set this in production, e.g. by adding
- *      *     Set window.SAFEPAY_API_URL before this script loads, e.g.:
-*     window.SAFEPAY_API_URL = 'https://your-app.onrender.com';
+ *   1. window.SAFEPAY_API_URL - set this in production, e.g. by adding
+ *      *      window.SAFEPAY_API_URL = 'https://your-app.onrender.com';
  *      just before this <script> tag (or before this file loads), so it
  *      never needs to be edited inline again.
- *   2. localStorage 'sp_api_url' — handy for pointing a deployed frontend at
+ *   2. localStorage 'sp_api_url' - handy for pointing a deployed frontend at
  *      a different backend without a rebuild (set from the browser console:
  *      localStorage.setItem('sp_api_url','https://...')).
- *   3. Local dev fallback — the Flask dev server default.
+ *   3. Local dev fallback - the Flask dev server default.
  */
 const API = window.SAFEPAY_API_URL || localStorage.getItem('sp_api_url') || 'https://safepay-hzxh.onrender.com';
 let token    = localStorage.getItem('sp_token') || '';
@@ -947,17 +950,17 @@ function acquireLocation() {
   navigator.geolocation.getCurrentPosition(
     pos => {
       currentLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy };
-      console.log('📍 Location acquired:', currentLocation);
+      console.log('Location acquired:', currentLocation);
       _updateLocationCard('acquired');
       // Update the Send Money badge
       const badge = document.getElementById('loc-badge');
-      if (badge) { badge.textContent = '📍 Location ready'; badge.style.color = 'var(--green)'; }
+      if (badge) { badge.textContent = 'Location ready'; badge.style.color = 'var(--green)'; }
     },
     err => {
       console.warn('Geolocation denied/unavailable:', err.message);
       _updateLocationCard('denied');
       const badge = document.getElementById('loc-badge');
-      if (badge) { badge.textContent = '📍 Location unavailable'; badge.style.color = 'var(--ink3)'; }
+      if (badge) { badge.textContent = 'Location unavailable'; badge.style.color = 'var(--ink3)'; }
     },
     { enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 }
   );
@@ -972,7 +975,8 @@ function _updateLocationCard(state) {
   if (!title) return;  // dashboard not rendered yet
 
   if (state === 'acquired' && currentLocation) {
-    icon.textContent  = '📍';
+    icon.innerHTML     = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+    icon.style.color   = 'var(--green)';
     title.textContent = 'Location Verified';
     title.style.color = 'var(--green)';
     sub.textContent   = 'Your device location is being used to protect every transaction';
@@ -984,9 +988,10 @@ function _updateLocationCard(state) {
     document.getElementById('loc-lat').textContent = currentLocation.lat.toFixed(5) + '°';
     document.getElementById('loc-lon').textContent = currentLocation.lon.toFixed(5) + '°';
     document.getElementById('loc-acc').textContent = currentLocation.accuracy
-      ? '±' + Math.round(currentLocation.accuracy) + ' m' : '—';
+      ? '±' + Math.round(currentLocation.accuracy) + ' m' : 'unknown';
   } else {
-    icon.textContent  = '🔒';
+    icon.innerHTML     = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+    icon.style.color   = 'var(--ink3)';
     title.textContent = 'Location Access Denied';
     title.style.color = 'var(--ink2)';
     sub.textContent   = 'Enable location access for stronger fraud protection. Transactions are still allowed.';
@@ -1181,7 +1186,7 @@ function renderChart(trend) {
 }
 
 /* ══════════════════════════════════════════════════════
-   TRANSFER — RISK PREVIEW
+   TRANSFER - RISK PREVIEW
 ══════════════════════════════════════════════════════ */
 function clearRiskPreview() {
   document.getElementById('risk-preview').classList.remove('show');
@@ -1244,7 +1249,7 @@ function buildPayload() {
 }
 
 /* ══════════════════════════════════════════════════════
-   TRANSFER — MAIN FLOW
+   TRANSFER - MAIN FLOW
 ══════════════════════════════════════════════════════ */
 async function doTransfer() {
   const btn=document.getElementById('transfer-btn');
@@ -1268,21 +1273,21 @@ async function doTransfer() {
 
     // Route based on risk
     if(data.would_block) {
-      // BLOCKED — show blocked modal, do NOT proceed
+      // BLOCKED - show blocked modal, do NOT proceed
       showBlockedModal(data);
     } else if(data.risk_score>=55||data.risk_level==='HIGH'||data.require_otp) {
-      // HIGH RISK — require backend OTP verification
+      // HIGH RISK - require backend OTP verification
       pendingTransferPayload=payload;
       await showOtpModal(data, recipient, amount);
     } else if(data.unusual_location) {
-      // UNUSUAL LOCATION — show location warning modal, let user confirm or cancel
+      // UNUSUAL LOCATION - show location warning modal, let user confirm or cancel
       showLocationWarning(data, payload, btn);
     } else if(data.risk_score>=30||data.risk_level==='MEDIUM') {
-      // MEDIUM — warn user but allow with confirmation
-      const proceed=confirm(`⚠️ Medium risk score (${data.risk_score.toFixed(1)}/100). This transaction will be flagged for review.\n\nReason(s): ${(data.risk_flags||[]).slice(0,2).join('; ')}\n\nProceed anyway?`);
+      // MEDIUM - warn user but allow with confirmation
+      const proceed=confirm(`Medium risk score (${data.risk_score.toFixed(1)}/100). This transaction will be flagged for review.\n\nReason(s): ${(data.risk_flags||[]).slice(0,2).join('; ')}\n\nProceed anyway?`);
       if(proceed) await executeTransfer(payload, btn);
     } else {
-      // LOW risk — proceed directly
+      // LOW risk - proceed directly
       await executeTransfer(payload, btn);
     }
   } catch(e){
@@ -1392,7 +1397,7 @@ async function proceedDespiteLocation() {
 }
 
 /* ══════════════════════════════════════════════════════
-   OTP MODAL  — server-driven email verification
+   OTP MODAL  - server-driven email verification
 ══════════════════════════════════════════════════════ */
 function maskEmail(email){
   const [local,domain]=(email||'').split('@');
@@ -1422,7 +1427,7 @@ async function showOtpModal(riskData, recipient, amount) {
 
     // Demo mode: backend returns the OTP so testers can see it
     if (data.demo_otp) {
-      toast(`📧 Email OTP (demo mode): ${data.demo_otp}`, 'info', 20000);
+      toast(`Email OTP (demo mode): ${data.demo_otp}`, 'info', 20000);
     } else {
       toast(`Verification code sent to ${masked}`, 'success', 6000);
     }
@@ -1444,7 +1449,7 @@ function updateOtpTimer(){
   const min=Math.floor(remaining/60000); const sec=Math.floor((remaining%60000)/1000);
   document.getElementById('otp-timer').textContent=
     `Code expires in ${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-  if(remaining<=0){clearInterval(otpTimerInterval);document.getElementById('otp-timer').textContent='Code expired — request a new one';}
+  if(remaining<=0){clearInterval(otpTimerInterval);document.getElementById('otp-timer').textContent='Code expired - request a new one';}
 }
 
 function otpInput(idx){
@@ -1473,7 +1478,7 @@ async function resendOtp(){
     updateOtpTimer();
     otpTimerInterval = setInterval(updateOtpTimer,1000);
     if(data.demo_otp){
-      toast(`📧 New OTP (demo): ${data.demo_otp}`,'info',20000);
+      toast(`New OTP (demo): ${data.demo_otp}`,'info',20000);
     } else {
       toast('New code sent to your email','success',5000);
     }
@@ -1496,7 +1501,7 @@ async function doVerifyOtp(){
       setLoading(btn,false);
       return;
     }
-    // Step 2: Backend issued a verify_token — attach it and execute the transfer
+    // Step 2: Backend issued a verify_token - attach it and execute the transfer
     const verifyToken = vdata.verify_token;
     const payload = {...pendingTransferPayload, verify_token: verifyToken};
     const {ok,data} = await api('POST','/transfer', payload);
@@ -1505,7 +1510,7 @@ async function doVerifyOtp(){
       showBlockedModal(data);
     } else if(ok&&(data.status==='success'||data.status==='suspicious')){
       const amt=payload.amount||payload.TransactionAmt;
-      showAlert('transfer-success',`✅ Verified & sent ₹${fmt(amt)} to ${esc(payload.recipient)}. Balance: ₹${fmt(data.remaining_balance)}`,'success');
+      showAlert('transfer-success',`Verified & sent ₹${fmt(amt)} to ${esc(payload.recipient)}. Balance: ₹${fmt(data.remaining_balance)}`,'success');
       toast('Transaction verified and completed','success',5000);
       loadDashboard(); clearForm();
     } else {
@@ -1516,7 +1521,7 @@ async function doVerifyOtp(){
 }
 
 /* ══════════════════════════════════════════════════════
-   ADD MONEY — Realistic Card Payment Flow
+   ADD MONEY - Realistic Card Payment Flow
 ══════════════════════════════════════════════════════ */
 function setAddAmt(amt){document.getElementById('addmoney-amount').value=amt;}
 
@@ -1695,7 +1700,7 @@ async function verifyUpi(){
   const parts=id.split('@');
   const fakeName=parts[0].charAt(0).toUpperCase()+parts[0].slice(1).replace(/\d/g,'');
   const nameEl=document.getElementById('upi-verified-name');
-  nameEl.textContent='✓ '+fakeName+' ('+parts[1].toUpperCase()+')';
+  nameEl.textContent=fakeName+' ('+parts[1].toUpperCase()+')';
   nameEl.style.display='block';
 }
 
@@ -1801,7 +1806,7 @@ async function loadHistory() {
       const isCredit=t.recipient==='WALLET_CREDIT';
       return `<tr>
         <td><span class="txn-date">${fmtDate(t.created_at)}</span></td>
-        <td><span class="txn-recipient">${esc(isCredit?'Wallet Credit':t.recipient||'—')}</span></td>
+        <td><span class="txn-recipient">${esc(isCredit?'Wallet Credit':t.recipient||'N/A')}</span></td>
         <td><span class="txn-amount ${isCredit?'credit':'debit'}">${isCredit?'+':'-'}&#8377;${Number(t.amount).toLocaleString('en-IN',{minimumFractionDigits:2})}</span></td>
         <td><span style="font-size:11px;color:var(--ink2)">${t.payment_method||'wallet'}</span></td>
         <td><span class="status-badge status-${t.status}">${t.status}</span></td>
@@ -1881,7 +1886,7 @@ function setLoading(btn,state){btn.classList.toggle('loading',state);btn.disable
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmt(n){return Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtDate(ts){
-  if(!ts) return '—';
+  if(!ts) return 'N/A';
   try{
     const d=new Date(ts.replace(' ','T')+(ts.includes('T')?'':'Z'));
     return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
