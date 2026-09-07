@@ -95,7 +95,7 @@ Deployment: Vercel + Render
 
 | | |
 |---|---|
-| **Login** <br> ![Login](./screenshots/login.png) | **Dashboard** <br> ![Dashboard](./screenshots/dashboard.png) |
+| **Login** <br> ![Login](./screenshots/log-in.png) | **Dashboard** <br> ![Dashboard](./screenshots/dashboard.png) |
 | **Send Money** <br> ![Send Money](./screenshots/send-money.png) | **Medium-Risk Warning** <br> ![Medium Risk Popup](./screenshots/medium-risk-popup.png) |
 | **OTP Verification (High Risk)** <br> ![OTP Verification](./screenshots/otp-verification.png) | **Add Money to Wallet** <br> ![Add Money](./screenshots/add-money.png) |
 | **Transaction History** <br> ![Transactions](./screenshots/transactions.png) | **Fraud Stats Dashboard** <br> ![Fraud Stats](./screenshots/fraud-stats.png) |
