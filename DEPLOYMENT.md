@@ -1,4 +1,4 @@
-# DEPLOYMENT.md — Quick Reference
+# DEPLOYMENT.md - Quick Reference
 
 Full walkthrough lives in `README.md` (Deploy Backend to Render / Deploy
 Frontend to Vercel / Connect Frontend to Backend). This file is the
@@ -13,7 +13,7 @@ GitHub repo
 └── frontend/  → Vercel (static)    → talks to Render over HTTPS
 ```
 
-No build step on either side. No Docker. No database service — SQLite lives
+No build step on either side. No Docker. No database service - SQLite lives
 on the backend's own filesystem (see README → SQLite / Persistence for the
 caveat that comes with that).
 
@@ -33,8 +33,8 @@ Environment variables to set in the Render dashboard:
 |---|---|
 | `JWT_SECRET_KEY` | `python3 -c "import secrets; print(secrets.token_hex(32))"` |
 | `FRONTEND_URL` | Your Vercel URL, e.g. `https://safepay.vercel.app` |
-| `RAZORPAY_KEY_ID` | Optional — omit for demo mode |
-| `RAZORPAY_KEY_SECRET` | Optional — omit for demo mode |
+| `RAZORPAY_KEY_ID` | Optional - omit for demo mode |
+| `RAZORPAY_KEY_SECRET` | Optional - omit for demo mode |
 
 `render.yaml` at the repo root encodes all of the above as a Blueprint, if
 you'd rather not enter it by hand.
@@ -44,7 +44,7 @@ you'd rather not enter it by hand.
 | Setting | Value |
 |---|---|
 | Root Directory | `frontend` |
-| Framework Preset | Other (static — no build step) |
+| Framework Preset | Other (static - no build step) |
 | Build Command | (none) |
 | Output Directory | `.` |
 
@@ -61,7 +61,7 @@ window.SAFEPAY_API_URL = '';   // set to your Render URL, e.g. 'https://safepay-
 
 Order of operations that avoids a chicken-and-egg problem:
 1. Deploy the backend first with `FRONTEND_URL` left blank or set to a guess
-   — CORS will just fall back to `*` until you set it.
+   - CORS will just fall back to `*` until you set it.
 2. Deploy the frontend, note its real Vercel URL.
 3. Set `FRONTEND_URL` on Render to that URL, redeploy the backend.
 4. Set `window.SAFEPAY_API_URL` in `frontend/index.html` to the Render URL,
@@ -80,7 +80,7 @@ python app.py          # http://127.0.0.1:5000
 cd frontend && python3 -m http.server 8080   # http://localhost:8080
 ```
 
-Local dev needs zero configuration beyond `JWT_SECRET_KEY` — the frontend's
+Local dev needs zero configuration beyond `JWT_SECRET_KEY` - the frontend's
 default (`http://127.0.0.1:5000`) and the backend's default CORS allow-list
 already match each other.
 
