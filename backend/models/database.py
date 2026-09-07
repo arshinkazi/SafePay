@@ -1,5 +1,5 @@
 """
-database.py — SQLite database initialisation & connection helper
+database.py - SQLite database initialisation & connection helper
 ================================================================
 All schema definitions live here. We use SQLite with WAL mode for
 concurrency and foreign key enforcement for data integrity.
@@ -45,7 +45,7 @@ def close_db(exc=None):
 def init_db():
     """
     Create all tables if they do not exist.
-    Run once at application startup — safe to call repeatedly.
+    Run once at application startup - safe to call repeatedly.
     """
     conn = sqlite3.connect(DB_PATH)
     conn.executescript("""
@@ -140,4 +140,4 @@ def init_db():
     """)
     conn.commit()
     conn.close()
-    log.info("✅ Database initialised at %s", DB_PATH)
+    log.info("Database initialised at %s", DB_PATH)
