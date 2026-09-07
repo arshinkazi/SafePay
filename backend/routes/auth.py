@@ -1,10 +1,10 @@
 """
-auth.py — Authentication routes
+auth.py - Authentication routes
 ================================
-POST /register   — create new account
-POST /login      — obtain JWT
-GET  /me         — current user profile
-GET  /balance    — current wallet balance
+POST /register   - create new account
+POST /login      - obtain JWT
+GET  /me         - current user profile
+GET  /balance    - current wallet balance
 """
 
 import logging
@@ -188,7 +188,9 @@ def _send_otp_email(to_email: str, otp: str, username: str) -> bool:
   <div style="text-align:center;margin-bottom:24px">
     <div style="width:48px;height:48px;background:#3D7BFF;border-radius:12px;
                 display:inline-flex;align-items:center;justify-content:center">
-      <span style="color:#fff;font-size:24px">🔒</span>
+      <span style="color:#fff;display:inline-flex">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </span>
     </div>
     <h2 style="margin:12px 0 4px;color:#111">Transaction Verification</h2>
     <p style="color:#6b7280;font-size:14px;margin:0">SafePay Security Alert</p>
@@ -222,7 +224,7 @@ def _send_otp_email(to_email: str, otp: str, username: str) -> bool:
 
     if not smtp_host:
         log.info("DEMO OTP for %s <%s>: %s  (set SMTP_HOST to send real email)", username, to_email, otp)
-        return True   # demo mode — OTP shown in backend log / returned to frontend
+        return True   # demo mode - OTP shown in backend log / returned to frontend
 
     try:
         msg = MIMEMultipart("alternative")
@@ -323,7 +325,7 @@ def verify_otp():
         remaining = OTP_MAX_ATTEMPTS - record["attempts"]
         return jsonify({"msg": f"Incorrect code. {remaining} attempt(s) remaining."}), 400
 
-    # Success — consume OTP and issue a short-lived verification token
+    # Success - consume OTP and issue a short-lived verification token
     del _otp_store[username]
     verify_token = secrets.token_urlsafe(32)
     # Store token so /transfer can validate it (expires in 10 min)
