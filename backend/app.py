@@ -84,7 +84,7 @@ def create_app() -> Flask:
     jwt_secret = os.environ.get("JWT_SECRET_KEY", _DEMO_JWT_SECRET)
     if jwt_secret == _DEMO_JWT_SECRET:
         log.warning(
-            "⚠️  JWT_SECRET_KEY is not set — using the built-in demo secret. "
+            "JWT_SECRET_KEY is not set - using the built-in demo secret. "
             "This is fine for local development but MUST be set to a random "
             "value before deploying. Generate one with: "
             "python3 -c \"import secrets; print(secrets.token_hex(32))\""
@@ -105,7 +105,7 @@ def create_app() -> Flask:
 
     @jwt.expired_token_loader
     def expired_token_cb(jwt_header, jwt_payload):
-        return jsonify({"msg": "Token has expired — please log in again"}), 401
+        return jsonify({"msg": "Token has expired - please log in again"}), 401
 
     # ── CORS ──────────────────────────────────────────────────────────────────
     # Set FRONTEND_URL (e.g. https://your-app.vercel.app) in production so the
@@ -156,7 +156,7 @@ def create_app() -> Flask:
     app.register_blueprint(stats_bp)
 
     # ── OTP routes (already on auth_bp via send-otp / verify-otp) ───────────
-    log.info("✅ SafePay app created — routes registered (incl. OTP email verification)")
+    log.info("SafePay app created - routes registered (incl. OTP email verification)")
     return app
 
 
@@ -173,5 +173,5 @@ if __name__ == "__main__":
     host  = os.environ.get("HOST", "127.0.0.1")
     port  = int(os.environ.get("PORT", "5000"))
     debug = os.environ.get("FLASK_DEBUG", "false").lower() in ("1", "true", "yes")
-    log.info("🚀 SafePay backend starting on http://%s:%s (debug=%s)", host, port, debug)
+    log.info("SafePay backend starting on http://%s:%s (debug=%s)", host, port, debug)
     app.run(host=host, port=port, debug=debug)
