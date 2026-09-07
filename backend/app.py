@@ -1,5 +1,5 @@
 """
-app.py — SafePay Flask Application Entry Point
+app.py - SafePay Flask Application Entry Point
 ===============================================
 Application factory pattern keeps this file lean.
 All logic lives in route blueprints and utility modules.
@@ -26,7 +26,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
 # ── Logging setup ─────────────────────────────────────────────────────────────
-# Always log to stdout — this is what Render (and most cloud platforms) capture
+# Always log to stdout - this is what Render (and most cloud platforms) capture
 # automatically. The file handler is best-effort only: some hosts run on a
 # read-only or ephemeral filesystem, and deployment must not depend on the file
 # existing, so a failure to open it is logged and swallowed rather than crashing
@@ -40,7 +40,7 @@ if os.environ.get("LOG_TO_FILE", "true").lower() not in ("0", "false", "no"):
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)-8s] %(name)s — %(message)s",
+    format="%(asctime)s [%(levelname)-8s] %(name)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
     handlers=_log_handlers,
 )
@@ -77,14 +77,14 @@ def _cors_origins() -> list[str] | str:
 
 
 def create_app() -> Flask:
-    """Application factory — creates and configures the Flask app."""
+    """Application factory - creates and configures the Flask app."""
     app = Flask(__name__)
 
     # ── JWT configuration ─────────────────────────────────────────────────────
     jwt_secret = os.environ.get("JWT_SECRET_KEY", _DEMO_JWT_SECRET)
     if jwt_secret == _DEMO_JWT_SECRET:
         log.warning(
-            "JWT_SECRET_KEY is not set - using the built-in demo secret. "
+            "JWT_SECRET_KEY is not set, using the built-in demo secret. "
             "This is fine for local development but MUST be set to a random "
             "value before deploying. Generate one with: "
             "python3 -c \"import secrets; print(secrets.token_hex(32))\""
@@ -126,7 +126,7 @@ def create_app() -> Flask:
         return response
 
     # ── JSON error handlers ───────────────────────────────────────────────────
-    # Make sure production never leaks a Python traceback or HTML error page —
+    # Make sure production never leaks a Python traceback or HTML error page -
     # every error response stays JSON, matching the rest of the API.
     @app.errorhandler(404)
     def not_found(err):
@@ -156,7 +156,7 @@ def create_app() -> Flask:
     app.register_blueprint(stats_bp)
 
     # ── OTP routes (already on auth_bp via send-otp / verify-otp) ───────────
-    log.info("SafePay app created - routes registered (incl. OTP email verification)")
+    log.info("SafePay app created, routes registered (incl. OTP email verification)")
     return app
 
 
@@ -167,7 +167,7 @@ app = create_app()
 
 # ── Dev entry point ───────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    # Only for local development — Render/production runs via Gunicorn instead
+    # Only for local development - Render/production runs via Gunicorn instead
     # (see the Procfile / render.yaml start command), so this code path is
     # never used in production and it's safe for debug mode to default off.
     host  = os.environ.get("HOST", "127.0.0.1")
