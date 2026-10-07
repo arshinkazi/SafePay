@@ -139,29 +139,30 @@ GET   /health
 
 ## Security
 
-PBKDF2-SHA256 password hashing with random salts
-JWT-protected API routes
-Parameterized SQL queries
-Rate limiting
-CORS restrictions
-Security response headers
-Backend-only payment secrets
-Audit logging
+- PBKDF2-SHA256 password hashing with random salts
+- JWT-protected API routes
+- Parameterized SQL queries
+- Rate limiting
+- CORS restrictions
+- Security response headers
+- Backend-only payment secrets
+- Audit logging
 
 ## Limitations
 
-SafePay is a portfolio/demo project, not production financial infrastructure.
-The current version uses SQLite and in-memory rate limiting/OTP storage. Production infrastructure such as PostgreSQL and Redis would be used for a larger deployment.
+- SafePay is a portfolio/demo project, not production financial infrastructure.
+- The current version uses SQLite and in-memory rate limiting/OTP storage. 
+- Production infrastructure such as PostgreSQL and Redis would be used for a larger deployment.
 
 ## Future Improvements
 
-PostgreSQL for production persistence
-Redis for rate limiting and OTP storage
-Automated tests + CI/CD
-ML-assisted fraud scoring
-Stronger MFA and account security
+- PostgreSQL for production persistence
+- Redis for rate limiting and OTP storage
+- Automated tests + CI/CD
+- ML-assisted fraud scoring
+- Stronger MFA and account security
 
 ## Author
 
 Arshin Kazi
-Full-stack software engineering project exploring fintech systems, API development, authentication, and fraud detection.
+
